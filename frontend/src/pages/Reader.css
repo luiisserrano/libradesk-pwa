@@ -1,0 +1,11 @@
+.pdf-document {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.pdf-page canvas {
+    max-width: 100%;
+    height: auto !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
