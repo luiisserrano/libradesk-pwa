@@ -54,3 +54,13 @@ export const uploadBook = async (formData: FormData) => {
     });
     return response.data;
 };
+
+export const getBookPdf = async (bookId: number): Promise<Blob> => {
+    const response = await api.get(`/books/${bookId}/pdf`, {
+        responseType: 'blob',
+        headers: {
+            'Accept': 'application/pdf'
+        }
+    });
+    return response.data;
+};

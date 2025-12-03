@@ -1,6 +1,6 @@
 {
-  "short_name": "Ionic App",
-  "name": "My Ionic App",
+  "short_name": "LibraDesk",
+  "name": "LibraDesk PWA",
   "icons": [
     {
       "src": "assets/icon/favicon.png",
@@ -15,7 +15,7 @@
     }
   ],
   "start_url": ".",
-  "display": "standalone",
+  "display": "fullscreen",
   "theme_color": "#ffffff",
   "background_color": "#ffffff"
 }

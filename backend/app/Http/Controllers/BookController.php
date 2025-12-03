@@ -30,6 +30,27 @@ class BookController extends Controller
         return response()->json($books);
     }
 
+    public function show($id)
+    {
+        $book = Book::with(['author', 'genre'])->find($id);
+
+        if (!$book) {
+            return response()->json([
+                'message' => 'Book not found'
+            ], 404);
+        }
+
+        return response()->json([
+            'id' => $book->id,
+            'title' => $book->title,
+            'author' => $book->author,
+            'genre' => $book->genre,
+            'cover_url' => $book->cover_image
+                ? asset('storage/' . $book->cover_image)
+                : null,
+        ]);
+    }
+
     public function store(Request $request)
     {
         $request->validate([
@@ -99,32 +120,15 @@ class BookController extends Controller
             ], 404);
         }
 
-        $pdfContent = $book->pdf_file;
+        $path = storage_path('app/public/' . $book->pdf_file);
 
-        // Si es un recurso (PostgreSQL bytea), convertir a string
-        if (is_resource($pdfContent)) {
-            $pdfContent = stream_get_contents($pdfContent);
-        }
-
-        // Si es binario (datos directos), devolverlo
-        if (is_string($pdfContent) && strlen($pdfContent) > 255 && strpos($pdfContent, '%PDF') !== false) {
-            // Es contenido binario del PDF
-            return response($pdfContent)
-                ->header('Content-Type', 'application/pdf')
-                ->header('Content-Disposition', 'inline; filename="' . $book->title . '.pdf"');
-        }
-
-        // Si es una ruta de archivo, buscar el archivo
-        $pdfPath = storage_path('app/public/' . $pdfContent);
-
-        if (!file_exists($pdfPath)) {
+        if (!file_exists($path)) {
             return response()->json([
-                'message' => 'PDF file missing from storage',
-                'path' => $pdfContent
+                'message' => 'PDF file missing from storage'
             ], 404);
         }
 
-        return response()->file($pdfPath, [
+        return response()->file($path, [
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'inline; filename="' . $book->title . '.pdf"'
         ]);
@@ -138,36 +142,33 @@ class BookController extends Controller
             return response("Image not found", 404);
         }
 
-        $cover = $book->cover_image;
+        $path = storage_path('app/public/' . $book->cover_image);
 
-        // 1. Si es un recurso (stream de BD), obtener contenido
-        if (is_resource($cover)) {
-            $cover = stream_get_contents($cover);
+        if (!file_exists($path)) {
+            return response("Image file missing", 404);
         }
 
-        // 2. Verificar si es una ruta de archivo existente en el storage
-        if (is_string($cover)) {
-            // Limpiar posibles caracteres nulos o basura si viene de un campo binario mal interpretado
-            $cleanPath = trim($cover);
-            $path = storage_path('app/public/' . $cleanPath);
-
-            if (file_exists($path) && is_file($path)) {
-                return response()->file($path);
-            }
-        }
-
-        // 3. Si no es archivo, asumir que es contenido binario (BLOB)
-        if (is_string($cover)) {
-            $finfo = finfo_open(FILEINFO_MIME_TYPE);
-            $mime = finfo_buffer($finfo, $cover);
-            finfo_close($finfo);
-
-            return response($cover, 200)
-                ->header("Content-Type", $mime)
-                ->header("Content-Disposition", "inline");
-        }
-
-        return response("Invalid image format", 500);
+        return response()->file($path);
     }
 
+    public function download($id)
+    {
+        $book = Book::find($id);
+
+        if (!$book || !$book->pdf_file) {
+            return response()->json([
+                'message' => 'PDF not found'
+            ], 404);
+        }
+
+        $path = storage_path('app/public/' . $book->pdf_file);
+
+        if (!file_exists($path)) {
+            return response()->json([
+                'message' => 'PDF file missing from storage'
+            ], 404);
+        }
+
+        return response()->download($path, $book->title . '.pdf');
+    }
 }

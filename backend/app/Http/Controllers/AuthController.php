@@ -105,16 +105,13 @@ class AuthController extends Controller
             return response("Image not found", 404);
         }
 
-        $photo = $user->profile_picture;
+        $path = storage_path('app/public/' . $user->profile_picture);
 
-        if (is_string($photo)) {
-            $path = storage_path('app/public/' . trim($photo));
-            if (file_exists($path)) {
-                return response()->file($path);
-            }
+        if (!file_exists($path)) {
+            return response("Image file missing", 404);
         }
 
-        return response("Invalid image format", 500);
+        return response()->file($path);
     }
 
     // Actualizar perfil

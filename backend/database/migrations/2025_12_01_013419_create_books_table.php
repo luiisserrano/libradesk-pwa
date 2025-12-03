@@ -15,8 +15,8 @@ return new class extends Migration {
             $table->string('title');
             $table->foreignId('author_id')->constrained('authors');
             $table->foreignId('genre_id')->constrained('genres');
-            $table->binary('cover_image')->nullable();
-            $table->binary('pdf_file');
+            $table->string('cover_image')->nullable();
+            $table->string('pdf_file')->nullable();
             $table->timestamps();
         });
     }

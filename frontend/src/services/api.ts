@@ -1,7 +1,18 @@
 import axios from 'axios';
 
+// Use environment variable or fallback to dynamic hostname (for LAN access)
+const getBaseUrl = () => {
+    if (import.meta.env.VITE_API_URL) {
+        return import.meta.env.VITE_API_URL;
+    }
+    // Si estamos en desarrollo (localhost o IP), asumir backend en puerto 8000
+    return `http://${window.location.hostname}:8000`;
+};
+
+const API_URL = getBaseUrl();
+
 const api = axios.create({
-    baseURL: 'http://localhost:8000/api',
+    baseURL: `${API_URL}/api`,
     headers: {
         'Accept': 'application/json',
     },

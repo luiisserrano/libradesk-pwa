@@ -13,7 +13,7 @@ return new class extends Migration {
         Schema::table('users', function (Blueprint $table) {
             $table->string('username')->unique();
             $table->foreignId('role_id')->constrained('roles');
-            $table->binary('profile_picture')->nullable();
+            $table->string('profile_picture')->nullable();
         });
     }
 

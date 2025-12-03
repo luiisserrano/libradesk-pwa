@@ -73,6 +73,8 @@ const Profile: React.FC = () => {
         }
     };
 
+    const [avatarKey, setAvatarKey] = useState(Date.now());
+
     const handleSave = async () => {
         try {
             const formData = new FormData();
@@ -95,6 +97,7 @@ const Profile: React.FC = () => {
             // Update localStorage with new user data
             localStorage.setItem('user', JSON.stringify(data.user));
             setUser(data.user);
+            setAvatarKey(Date.now()); // Force avatar refresh
 
             setToastMessage('Perfil actualizado exitosamente');
             setShowToast(true);
@@ -133,7 +136,7 @@ const Profile: React.FC = () => {
                 <IonCard>
                     <IonCardHeader>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                            <UserAvatar userId={user?.id} name={user?.username} size="large" />
+                            <UserAvatar key={avatarKey} userId={user?.id} name={user?.username} size="large" />
                             <div>
                                 <IonCardTitle>{user?.username}</IonCardTitle>
                                 <p>{user?.email}</p>

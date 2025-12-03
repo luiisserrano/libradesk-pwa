@@ -18,15 +18,23 @@ const BookCover: React.FC<BookCoverProps> = ({ bookId, title, className }) => {
         const fetchCover = async () => {
             try {
                 setLoading(true);
+                console.log(`Fetching cover for book ${bookId}...`);
                 const blob = await getBookCover(bookId);
+                console.log(`Cover received for book ${bookId}, size: ${blob.size} bytes, type: ${blob.type}`);
 
                 if (isMounted) {
                     const url = URL.createObjectURL(blob);
+                    console.log(`Created object URL for book ${bookId}: ${url}`);
                     setImageUrl(url);
                     setLoading(false);
                 }
-            } catch (err) {
+            } catch (err: any) {
                 console.error(`Error loading cover for book ${bookId}`, err);
+                console.error('Error details:', {
+                    message: err.message,
+                    response: err.response?.status,
+                    data: err.response?.data
+                });
                 if (isMounted) {
                     setError(true);
                     setLoading(false);

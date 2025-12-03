@@ -16,7 +16,7 @@ export const logout = async () => {
 };
 
 export const getUserPhoto = async (userId: number): Promise<Blob> => {
-    const response = await api.get(`/users/${userId}/photo`, {
+    const response = await api.get(`/users/${userId}/photo?t=${Date.now()}`, {
         responseType: 'blob'
     });
     return response.data;

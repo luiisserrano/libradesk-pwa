@@ -57,6 +57,7 @@ const Home: React.FC = () => {
       await addBookToLibrary(bookId);
       setToastMessage(`"${bookTitle}" agregado a tu biblioteca`);
       setShowToast(true);
+      fetchBooks(); // Recargar lista para actualizar estados si es necesario
     } catch (error: any) {
       const errorMsg = error.response?.data?.message || 'Error al agregar el libro';
       setToastMessage(errorMsg);
