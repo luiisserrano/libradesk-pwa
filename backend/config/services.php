@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    'vapid' => [
+        'subject' => env('VAPID_SUBJECT', 'mailto:admin@libradesk.com'),
+        'publicKey' => env('VAPID_PUBLIC_KEY'),
+        'privateKey' => env('VAPID_PRIVATE_KEY'),
+    ],
+
 ];

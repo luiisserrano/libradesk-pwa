@@ -131,9 +131,9 @@ const MyLibrary: React.FC = () => {
                         {library.length === 0 ? (
                             <IonCol size="12">
                                 <p style={{ textAlign: 'center', marginTop: '50px' }}>
-                                    No tienes libros en tu biblioteca.
+                                    No tienes libros descargados.
                                     <br />
-                                    Ve a "Explorar Libros" para agregar algunos.
+                                    Cuando tengas conexión, descarga libros para leerlos aquí.
                                 </p>
                             </IonCol>
                         ) : (

@@ -30,13 +30,10 @@ const OfflineLogin: React.FC = () => {
                 if (biometricToken && biometricUser) {
                     localStorage.setItem('token', biometricToken);
                     localStorage.setItem('user', biometricUser);
+                    history.push('/my-library');
+                } else {
+                    setError('Identidad verificada, pero no hay sesión guardada. Por favor inicia sesión online una vez para activar.');
                 }
-
-                // Set a session flag
-                sessionStorage.setItem('offline_authenticated', 'true');
-
-                // Force reload to ensure state is picked up or navigate
-                history.push('/my-library');
             } else {
                 setError(result.error || 'No se pudo verificar la identidad.');
             }

@@ -13,12 +13,10 @@ class WebPushService
     public function __construct()
     {
         $auth = [
-            'VAPID' => [
-                'subject' => 'mailto:admin@libradesk.com', // Customize this
-                'publicKey' => env('VAPID_PUBLIC_KEY'),
-                'privateKey' => env('VAPID_PRIVATE_KEY'),
-            ],
+            'VAPID' => config('services.vapid'),
         ];
+
+        \Illuminate\Support\Facades\Log::info('WebPushService Auth Config:', $auth);
 
         $this->webPush = new WebPush($auth);
     }
