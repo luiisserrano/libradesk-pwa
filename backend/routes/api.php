@@ -67,6 +67,16 @@ Route::middleware('auth:sanctum')->group(function () {
     // Push Notifications
     Route::post('/push/subscribe', [\App\Http\Controllers\PushSubscriptionController::class, 'subscribe']);
     Route::post('/push/unsubscribe', [\App\Http\Controllers\PushSubscriptionController::class, 'unsubscribe']);
+    Route::post('/push/test', function () {
+        $pushService = new \App\Services\WebPushService();
+        $pushService->sendNotificationToAll(
+            'Test Notification',
+            'This is a test notification from Libradesk.',
+            '/',
+            null
+        );
+        return response()->json(['message' => 'Test notification sent']);
+    });
 
     // --------------------------
     //  ADMIN ROUTES

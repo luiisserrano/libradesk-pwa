@@ -70,7 +70,12 @@ const App: React.FC = () => (
       <IonReactRouter>
         <NotificationInitializer />
         <IonRouterOutlet>
-          <Route exact path="/login" component={Login} />
+          <Route exact path="/login" render={() => {
+            if (localStorage.getItem('token')) {
+              return <Redirect to="/my-library" />;
+            }
+            return <Login />;
+          }} />
           <Route exact path="/register" component={Register} />
           <Route exact path="/offline-login" component={OfflineLogin} />
           <Route exact path="/" render={() => <Redirect to="/login" />} />

@@ -36,7 +36,7 @@ const OfflineLogin: React.FC = () => {
                 sessionStorage.setItem('offline_authenticated', 'true');
 
                 // Force reload to ensure state is picked up or navigate
-                window.location.href = '/my-library';
+                history.push('/my-library');
             } else {
                 setError(result.error || 'No se pudo verificar la identidad.');
             }
