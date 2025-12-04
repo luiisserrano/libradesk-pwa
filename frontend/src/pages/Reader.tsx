@@ -15,6 +15,7 @@ import { useParams, useHistory } from 'react-router-dom';
 import { arrowBack, chevronBack, chevronForward, add, remove } from 'ionicons/icons';
 import { Document, Page, pdfjs } from 'react-pdf';
 import api from '../services/api';
+import { offlineBookService } from '../services/offlineBookService';
 import './Reader.css';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
@@ -44,8 +45,29 @@ const Reader: React.FC = () => {
     }, [id]);
 
     const loadPdf = async () => {
+        setLoading(true);
+        setError('');
+
         try {
-            setLoading(true);
+            // 1. Try to get from offline storage first if we know it's downloaded
+            // or if we are offline
+            const isOffline = !navigator.onLine;
+            const offlineBook = await offlineBookService.getBook(Number(id));
+
+            if (isOffline || offlineBook) {
+                if (offlineBook) {
+                    console.log('Loading book from offline storage');
+                    const url = URL.createObjectURL(offlineBook);
+                    setPdfUrl(url);
+                    setLoading(false);
+                    return;
+                } else if (isOffline) {
+                    throw new Error('No internet connection and book not downloaded');
+                }
+            }
+
+            // 2. If not offline/downloaded, try fetching from API
+            console.log('Fetching book from API');
             const response = await api.get(`/books/${id}/pdf`, {
                 responseType: 'blob'
             });
@@ -53,10 +75,21 @@ const Reader: React.FC = () => {
             const blob = new Blob([response.data], { type: 'application/pdf' });
             const url = URL.createObjectURL(blob);
             setPdfUrl(url);
-            setLoading(false);
         } catch (err: any) {
             console.error('Error loading PDF:', err);
-            setError('Error al cargar el PDF');
+
+            // Fallback: If API failed, try one last check in offline storage
+            // (in case we didn't check it first because we thought we were online)
+            const offlineBook = await offlineBookService.getBook(Number(id));
+            if (offlineBook) {
+                console.log('API failed, falling back to offline storage');
+                const url = URL.createObjectURL(offlineBook);
+                setPdfUrl(url);
+                setError('');
+            } else {
+                setError('No se pudo cargar el libro. Verifica tu conexión o descárgalo para leer offline.');
+            }
+        } finally {
             setLoading(false);
         }
     };

@@ -64,6 +64,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/library/{bookId}', [UserLibraryController::class, 'updateProgress']);
     Route::delete('/library/{bookId}', [UserLibraryController::class, 'removeFromLibrary']);
 
+    // Push Notifications
+    Route::post('/push/subscribe', [\App\Http\Controllers\PushSubscriptionController::class, 'subscribe']);
+    Route::post('/push/unsubscribe', [\App\Http\Controllers\PushSubscriptionController::class, 'unsubscribe']);
+
     // --------------------------
     //  ADMIN ROUTES
     // --------------------------

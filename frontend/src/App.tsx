@@ -1,3 +1,4 @@
+import React from 'react';
 import { Redirect, Route } from 'react-router-dom';
 import { IonApp, IonRouterOutlet, IonSplitPane, setupIonicReact } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
@@ -12,6 +13,7 @@ import OfflineLogin from './pages/OfflineLogin';
 import MainLayout from './pages/MainLayout';
 import Sidebar from './components/Sidebar';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { notificationService } from './services/notificationService';
 
 // Admin Pages
 import AdminRoute from './components/AdminRoute';
@@ -53,10 +55,20 @@ import './theme/variables.css';
 
 setupIonicReact();
 
+setupIonicReact();
+
+const NotificationInitializer: React.FC = () => {
+  React.useEffect(() => {
+    notificationService.subscribeToPush();
+  }, []);
+  return null;
+};
+
 const App: React.FC = () => (
   <IonApp>
     <ThemeProvider>
       <IonReactRouter>
+        <NotificationInitializer />
         <IonRouterOutlet>
           <Route exact path="/login" component={Login} />
           <Route exact path="/register" component={Register} />

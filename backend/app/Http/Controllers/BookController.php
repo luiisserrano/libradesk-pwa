@@ -87,17 +87,33 @@ class BookController extends Controller
                 return Book::create($data);
             });
 
+            $bookData = [
+                'id' => $book->id,
+                'title' => $book->title,
+                'author_id' => $book->author_id,
+                'genre_id' => $book->genre_id,
+                'cover_url' => $book->cover_image
+                    ? asset('storage/' . $book->cover_image)
+                    : null
+            ];
+
+            // Send Push Notification
+            try {
+                $pushService = new \App\Services\WebPushService();
+                $pushService->sendNotificationToAll(
+                    'Nuevo Libro Disponible',
+                    "Se ha añadido '{$book->title}' a la biblioteca.",
+                    '/', // Open home page
+                    $bookData['cover_url']
+                );
+            } catch (\Exception $e) {
+                \Log::error('Push notification error: ' . $e->getMessage());
+                // Don't fail the request if notification fails
+            }
+
             return response()->json([
                 'message' => 'Book created successfully',
-                'book' => [
-                    'id' => $book->id,
-                    'title' => $book->title,
-                    'author_id' => $book->author_id,
-                    'genre_id' => $book->genre_id,
-                    'cover_url' => $book->cover_image
-                        ? asset('storage/' . $book->cover_image)
-                        : null
-                ]
+                'book' => $bookData
             ], 201);
 
         } catch (\Exception $e) {
