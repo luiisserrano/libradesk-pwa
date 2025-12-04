@@ -18,15 +18,23 @@ import {
     IonImg,
     IonBadge,
     useIonViewWillEnter,
-    IonIcon
+    IonIcon,
+    IonToast,
+    IonSpinner
 } from '@ionic/react';
-import { trash } from 'ionicons/icons';
+import { trash, cloudDownload, checkmarkCircle } from 'ionicons/icons';
 import { getUserLibrary, removeBookFromLibrary } from '../services/bookService';
+import { offlineBookService } from '../services/offlineBookService';
+import api from '../services/api';
 import BookCover from '../components/BookCover';
 import { useHistory } from 'react-router-dom';
 
 const MyLibrary: React.FC = () => {
     const [library, setLibrary] = useState<any[]>([]);
+    const [downloadedBooks, setDownloadedBooks] = useState<Set<number>>(new Set());
+    const [downloading, setDownloading] = useState<number | null>(null);
+    const [showToast, setShowToast] = useState(false);
+    const [toastMessage, setToastMessage] = useState('');
     const history = useHistory();
 
     useIonViewWillEnter(() => {
@@ -37,13 +45,47 @@ const MyLibrary: React.FC = () => {
         try {
             const data = await getUserLibrary();
             setLibrary(data);
+            checkDownloadedBooks(data);
         } catch (error) {
             console.error('Error fetching library:', error);
         }
     };
 
+    const checkDownloadedBooks = async (books: any[]) => {
+        const downloaded = new Set<number>();
+        for (const book of books) {
+            const isDownloaded = await offlineBookService.isBookDownloaded(book.id);
+            if (isDownloaded) {
+                downloaded.add(book.id);
+            }
+        }
+        setDownloadedBooks(downloaded);
+    };
+
     const handleRead = (bookId: number) => {
         history.push(`/reader/${bookId}`);
+    };
+
+    const handleDownload = async (bookId: number, title: string) => {
+        try {
+            setDownloading(bookId);
+            const response = await api.get(`/books/${bookId}/pdf`, {
+                responseType: 'blob'
+            });
+
+            const blob = new Blob([response.data], { type: 'application/pdf' });
+            await offlineBookService.saveBook(bookId, blob);
+
+            setDownloadedBooks(prev => new Set(prev).add(bookId));
+            setToastMessage(`"${title}" descargado para lectura offline`);
+            setShowToast(true);
+        } catch (error) {
+            console.error('Error downloading book:', error);
+            setToastMessage('Error al descargar el libro');
+            setShowToast(true);
+        } finally {
+            setDownloading(null);
+        }
     };
 
     const handleRemoveBook = async (bookId: number, title: string) => {
@@ -53,7 +95,13 @@ const MyLibrary: React.FC = () => {
 
         try {
             await removeBookFromLibrary(bookId);
+            await offlineBookService.removeBook(bookId); // Also remove from offline storage
             setLibrary(library.filter(b => b.id !== bookId));
+            setDownloadedBooks(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(bookId);
+                return newSet;
+            });
         } catch (error) {
             console.error('Error removing book:', error);
         }
@@ -98,6 +146,13 @@ const MyLibrary: React.FC = () => {
                                             >
                                                 <IonIcon icon={trash} slot="icon-only" />
                                             </IonButton>
+
+                                            {downloadedBooks.has(book.id) && (
+                                                <IonBadge color="success" style={{ position: 'absolute', top: '5px', left: '5px' }}>
+                                                    <IonIcon icon={checkmarkCircle} style={{ verticalAlign: 'middle', marginRight: '4px' }} />
+                                                    Offline
+                                                </IonBadge>
+                                            )}
                                         </div>
 
                                         <IonCardHeader>
@@ -113,13 +168,30 @@ const MyLibrary: React.FC = () => {
                                                 </IonBadge>
                                             )}
 
-                                            <IonButton
-                                                expand="block"
-                                                onClick={() => handleRead(book.id)}
-                                                className="ion-margin-top"
-                                            >
-                                                Leer
-                                            </IonButton>
+                                            <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
+                                                <IonButton
+                                                    expand="block"
+                                                    onClick={() => handleRead(book.id)}
+                                                    style={{ flex: 1 }}
+                                                >
+                                                    Leer
+                                                </IonButton>
+
+                                                {!downloadedBooks.has(book.id) && (
+                                                    <IonButton
+                                                        fill="outline"
+                                                        onClick={() => handleDownload(book.id, book.title)}
+                                                        disabled={downloading === book.id}
+                                                        style={{ width: '50px' }}
+                                                    >
+                                                        {downloading === book.id ? (
+                                                            <IonSpinner name="crescent" style={{ width: '20px', height: '20px' }} />
+                                                        ) : (
+                                                            <IonIcon icon={cloudDownload} slot="icon-only" />
+                                                        )}
+                                                    </IonButton>
+                                                )}
+                                            </div>
                                         </IonCardContent>
                                     </IonCard>
                                 </IonCol>
@@ -127,6 +199,12 @@ const MyLibrary: React.FC = () => {
                         )}
                     </IonRow>
                 </IonGrid>
+                <IonToast
+                    isOpen={showToast}
+                    onDidDismiss={() => setShowToast(false)}
+                    message={toastMessage}
+                    duration={2000}
+                />
             </IonContent>
         </IonPage>
     );

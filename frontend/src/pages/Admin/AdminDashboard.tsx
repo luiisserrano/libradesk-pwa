@@ -1,5 +1,5 @@
 import React from 'react';
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonGrid, IonRow, IonCol, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonIcon, IonButtons, IonMenuButton } from '@ionic/react';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonGrid, IonRow, IonCol, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonIcon, IonButtons, IonMenuButton, IonButton } from '@ionic/react';
 import { peopleOutline, bookOutline, pricetagsOutline, personOutline } from 'ionicons/icons';
 import { useHistory } from 'react-router-dom';
 
@@ -21,6 +21,11 @@ const AdminDashboard: React.FC = () => {
                         <IonMenuButton />
                     </IonButtons>
                     <IonTitle>Panel de Administración</IonTitle>
+                    <IonButtons slot="end">
+                        <IonButton onClick={() => window.location.href = '/my-library'}>
+                            Volver a Biblioteca
+                        </IonButton>
+                    </IonButtons>
                 </IonToolbar>
             </IonHeader>
             <IonContent className="ion-padding">
