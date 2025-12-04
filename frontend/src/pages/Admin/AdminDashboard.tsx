@@ -1,7 +1,8 @@
 import React from 'react';
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonGrid, IonRow, IonCol, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonIcon, IonButtons, IonMenuButton, IonButton } from '@ionic/react';
-import { peopleOutline, bookOutline, pricetagsOutline, personOutline } from 'ionicons/icons';
+import { peopleOutline, bookOutline, pricetagsOutline, personOutline, notificationsOutline } from 'ionicons/icons';
 import { useHistory } from 'react-router-dom';
+import api from '../../services/api';
 
 const AdminDashboard: React.FC = () => {
     const history = useHistory();
@@ -12,6 +13,16 @@ const AdminDashboard: React.FC = () => {
         { title: 'Géneros', icon: pricetagsOutline, path: '/admin/genres', desc: 'Administrar géneros literarios' },
         { title: 'Autores', icon: personOutline, path: '/admin/authors', desc: 'Administrar autores' },
     ];
+
+    const sendTestNotification = async () => {
+        try {
+            await api.post('/push/test');
+            alert('Notificación enviada');
+        } catch (error) {
+            console.error(error);
+            alert('Error al enviar notificación');
+        }
+    };
 
     return (
         <IonPage>
@@ -48,6 +59,13 @@ const AdminDashboard: React.FC = () => {
                         ))}
                     </IonRow>
                 </IonGrid>
+
+                <div className="ion-padding">
+                    <IonButton expand="block" color="warning" onClick={sendTestNotification}>
+                        <IonIcon icon={notificationsOutline} slot="start" />
+                        Enviar Notificación de Prueba
+                    </IonButton>
+                </div>
             </IonContent>
         </IonPage>
     );
