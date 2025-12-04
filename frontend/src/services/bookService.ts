@@ -47,7 +47,7 @@ export const getLocalBook = async (bookId: number) => {
 };
 
 export const uploadBook = async (formData: FormData) => {
-    const response = await api.post('/books', formData, {
+    const response = await api.post('/admin/books', formData, {
         headers: {
             'Content-Type': 'multipart/form-data',
         },
