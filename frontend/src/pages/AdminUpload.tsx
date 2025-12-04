@@ -3,6 +3,7 @@ import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonInput, IonButt
 import { uploadBook } from '../services/bookService';
 import { useHistory } from 'react-router-dom';
 import api from '../services/api';
+import { resizeImage } from '../utils/imageUtils';
 
 const AdminUpload: React.FC = () => {
     const [title, setTitle] = useState('');
@@ -104,7 +105,19 @@ const AdminUpload: React.FC = () => {
                     <input
                         type="file"
                         accept="image/*"
-                        onChange={e => setCover(e.target.files ? e.target.files[0] : null)}
+                        onChange={async (e) => {
+                            if (e.target.files && e.target.files[0]) {
+                                try {
+                                    const resized = await resizeImage(e.target.files[0]);
+                                    setCover(resized);
+                                } catch (error) {
+                                    console.error('Error resizing image:', error);
+                                    setCover(e.target.files[0]); // Fallback to original
+                                }
+                            } else {
+                                setCover(null);
+                            }
+                        }}
                         style={{ marginTop: '10px' }}
                     />
                 </IonItem>

@@ -91,7 +91,13 @@ const BookCover: React.FC<BookCoverProps> = ({ bookId, title, className }) => {
 
     return (
         <div style={containerStyle} className={className}>
-            <img src={imageUrl} alt={`Portada de ${title}`} style={imageStyle} />
+            <img
+                src={imageUrl}
+                alt={`Portada de ${title}`}
+                style={imageStyle}
+                loading="lazy"
+                decoding="async"
+            />
         </div>
     );
 };

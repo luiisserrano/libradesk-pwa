@@ -11,6 +11,7 @@ class AdminController extends Controller
     // List all users
     public function index()
     {
+        \Log::info('Admin users requested by user: ' . auth()->id());
         $users = User::with('role')->get();
         return response()->json($users);
     }
