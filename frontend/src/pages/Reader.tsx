@@ -119,7 +119,7 @@ const Reader: React.FC = () => {
             <IonHeader>
                 <IonToolbar>
                     <IonButtons slot="start">
-                        <IonButton onClick={() => history.goBack()}>
+                        <IonButton onClick={() => history.push('/my-library')}>
                             <IonIcon icon={arrowBack} />
                         </IonButton>
                     </IonButtons>

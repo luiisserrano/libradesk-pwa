@@ -84,7 +84,10 @@ const App: React.FC = () => (
 
           <Route path={['/home', '/profile', '/admin-upload', '/my-library', '/reader/:id']} render={() => {
             // Simple guard for offline access
-            if (!navigator.onLine && !sessionStorage.getItem('offline_authenticated')) {
+            const hasToken = localStorage.getItem('token');
+            const isOfflineAuth = sessionStorage.getItem('offline_authenticated');
+
+            if (!navigator.onLine && !hasToken && !isOfflineAuth) {
               return <Redirect to="/offline-login" />;
             }
             return <MainLayout />;

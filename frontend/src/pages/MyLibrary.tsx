@@ -48,6 +48,10 @@ const MyLibrary: React.FC = () => {
             checkDownloadedBooks(data);
         } catch (error) {
             console.error('Error fetching library:', error);
+            // Fallback to offline books
+            const offlineBooks = await offlineBookService.getOfflineBooks();
+            setLibrary(offlineBooks);
+            checkDownloadedBooks(offlineBooks);
         }
     };
 
@@ -74,7 +78,10 @@ const MyLibrary: React.FC = () => {
             });
 
             const blob = new Blob([response.data], { type: 'application/pdf' });
-            await offlineBookService.saveBook(bookId, blob);
+
+            // Find book metadata to save
+            const bookToSave = library.find(b => b.id === bookId);
+            await offlineBookService.saveBook(bookId, blob, bookToSave);
 
             setDownloadedBooks(prev => new Set(prev).add(bookId));
             setToastMessage(`"${title}" descargado para lectura offline`);
