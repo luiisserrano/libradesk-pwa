@@ -45,7 +45,7 @@ const Sidebar: React.FC = () => {
             <IonHeader>
                 <IonToolbar color="primary">
                     <div style={{ padding: '10px', display: 'flex', justifyContent: 'center' }}>
-                        <img src={logo} alt="LibraDesk Logo" style={{ height: '40px' }} />
+                        <img src={logo} alt="LibraDesk Logo" style={{ height: '40px' }} loading="lazy" decoding="async" />
                     </div>
                 </IonToolbar>
             </IonHeader>
