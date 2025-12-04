@@ -8,9 +8,18 @@ import AdminUpload from './pages/AdminUpload';
 import MyLibrary from './pages/MyLibrary';
 import Reader from './pages/Reader';
 import Profile from './pages/Profile';
+import OfflineLogin from './pages/OfflineLogin';
 import MainLayout from './pages/MainLayout';
 import Sidebar from './components/Sidebar';
 import { ThemeProvider } from './contexts/ThemeContext';
+
+// Admin Pages
+import AdminRoute from './components/AdminRoute';
+import AdminDashboard from './pages/Admin/AdminDashboard';
+import ManageUsers from './pages/Admin/ManageUsers';
+import ManageBooks from './pages/Admin/ManageBooks';
+import ManageGenres from './pages/Admin/ManageGenres';
+import ManageAuthors from './pages/Admin/ManageAuthors';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
@@ -51,8 +60,23 @@ const App: React.FC = () => (
         <IonRouterOutlet>
           <Route exact path="/login" component={Login} />
           <Route exact path="/register" component={Register} />
+          <Route exact path="/offline-login" component={OfflineLogin} />
           <Route exact path="/" render={() => <Redirect to="/login" />} />
-          <Route path={['/home', '/profile', '/admin-upload', '/my-library', '/reader/:id']} component={MainLayout} />
+
+          {/* Admin Routes */}
+          <AdminRoute exact path="/admin" component={AdminDashboard} />
+          <AdminRoute exact path="/admin/users" component={ManageUsers} />
+          <AdminRoute exact path="/admin/books" component={ManageBooks} />
+          <AdminRoute exact path="/admin/genres" component={ManageGenres} />
+          <AdminRoute exact path="/admin/authors" component={ManageAuthors} />
+
+          <Route path={['/home', '/profile', '/admin-upload', '/my-library', '/reader/:id']} render={() => {
+            // Simple guard for offline access
+            if (!navigator.onLine && !sessionStorage.getItem('offline_authenticated')) {
+              return <Redirect to="/offline-login" />;
+            }
+            return <MainLayout />;
+          }} />
         </IonRouterOutlet>
       </IonReactRouter>
     </ThemeProvider>

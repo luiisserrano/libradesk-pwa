@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonIcon, IonText } from '@ionic/react';
 import { downloadOutline, shareOutline, addCircleOutline } from 'ionicons/icons';
 
+import icon from '../img/icono.png';
+
 const InstallPrompt: React.FC = () => {
     const [deferredPrompt, setDeferredPrompt] = useState<any>((window as any).deferredPrompt);
     const [isIOS, setIsIOS] = useState(false);
@@ -27,15 +29,7 @@ const InstallPrompt: React.FC = () => {
 
         updateDebugInfo();
 
-        // Intentar registrar SW si no existe
-        if ('serviceWorker' in navigator && !navigator.serviceWorker.controller) {
-            navigator.serviceWorker.register('/sw.js')
-                .then(() => {
-                    console.log('SW registered manually');
-                    updateDebugInfo();
-                })
-                .catch(err => setDebugInfo(prev => prev + ` | SW Error: ${err.message}`));
-        }
+        // Manual SW registration removed to avoid conflicts with vite-plugin-pwa
 
         // Escuchar evento para Android/Chrome
         const handler = (e: Event) => {
@@ -89,12 +83,9 @@ const InstallPrompt: React.FC = () => {
                 <IonCardContent>
                     <div style={{ marginBottom: '20px' }}>
                         <img
-                            src="/assets/icon/icon.png"
+                            src={icon}
                             alt="App Icon"
                             style={{ width: '80px', height: '80px', borderRadius: '16px' }}
-                            onError={(e) => {
-                                e.currentTarget.src = 'https://via.placeholder.com/80?text=LD';
-                            }}
                         />
                     </div>
 

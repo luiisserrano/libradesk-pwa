@@ -3,11 +3,12 @@ import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonInput, IonButt
 import { useHistory } from 'react-router-dom';
 import { register } from '../services/authService';
 
+import logo from '../img/logo.png';
+
 const Register: React.FC = () => {
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [roleId, setRoleId] = useState('2'); // Default to User (ID 2)
     const [file, setFile] = useState<File | null>(null);
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState('');
@@ -19,7 +20,6 @@ const Register: React.FC = () => {
             formData.append('username', username);
             formData.append('email', email);
             formData.append('password', password);
-            formData.append('role_id', roleId);
             if (file) {
                 formData.append('profile_picture', file);
             }
@@ -104,6 +104,9 @@ const Register: React.FC = () => {
                 </IonToolbar>
             </IonHeader>
             <IonContent className="ion-padding">
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px', marginTop: '20px' }}>
+                    <img src={logo} alt="LibraDesk Logo" style={{ width: '150px', height: 'auto' }} />
+                </div>
                 <IonItem>
                     <IonLabel position="floating">Username</IonLabel>
                     <IonInput value={username} onIonChange={e => setUsername(e.detail.value!)} />
@@ -115,13 +118,6 @@ const Register: React.FC = () => {
                 <IonItem>
                     <IonLabel position="floating">Password</IonLabel>
                     <IonInput type="password" value={password} onIonChange={e => setPassword(e.detail.value!)} />
-                </IonItem>
-                <IonItem>
-                    <IonLabel>Role</IonLabel>
-                    <IonSelect value={roleId} onIonChange={e => setRoleId(e.detail.value)}>
-                        <IonSelectOption value="2">User</IonSelectOption>
-                        <IonSelectOption value="1">Admin</IonSelectOption>
-                    </IonSelect>
                 </IonItem>
                 <IonItem>
                     <IonLabel>Profile Picture</IonLabel>

@@ -22,7 +22,6 @@ class AuthController extends Controller
                 'username' => 'required|string|unique:users,username',
                 'email' => 'required|string|email|unique:users,email',
                 'password' => 'required|string|min:6',
-                'role_id' => 'required|exists:roles,id',
                 'profile_picture' => 'nullable|image|max:2048',
             ]);
 
@@ -31,7 +30,7 @@ class AuthController extends Controller
                     'username' => $request->username,
                     'email' => $request->email,
                     'password' => Hash::make($request->password),
-                    'role_id' => $request->role_id,
+                    'role_id' => 2, // Default to User
                     'name' => $request->username,
                 ];
 

@@ -171,4 +171,66 @@ class BookController extends Controller
 
         return response()->download($path, $book->title . '.pdf');
     }
+    public function update(Request $request, $id)
+    {
+        $book = Book::findOrFail($id);
+
+        $request->validate([
+            'title' => 'sometimes|required|string',
+            'author_id' => 'sometimes|required|exists:authors,id',
+            'genre_id' => 'sometimes|required|exists:genres,id',
+            'cover_image' => 'nullable|image|max:2048',
+            'pdf_file' => 'nullable|mimes:pdf|max:100000',
+        ]);
+
+        try {
+            DB::transaction(function () use ($request, $book) {
+                $data = $request->only(['title', 'author_id', 'genre_id']);
+
+                if ($request->hasFile('cover_image')) {
+                    // Delete old cover
+                    if ($book->cover_image) {
+                        Storage::disk('public')->delete($book->cover_image);
+                    }
+                    $data['cover_image'] = $request->file('cover_image')->store('covers', 'public');
+                }
+
+                if ($request->hasFile('pdf_file')) {
+                    // Delete old PDF
+                    if ($book->pdf_file) {
+                        Storage::disk('public')->delete($book->pdf_file);
+                    }
+                    $data['pdf_file'] = $request->file('pdf_file')->store('pdfs', 'public');
+                }
+
+                $book->update($data);
+            });
+
+            return response()->json(['message' => 'Book updated successfully', 'book' => $book]);
+
+        } catch (\Exception $e) {
+            \Log::error('Book update error: ' . $e->getMessage());
+            return response()->json(['message' => 'Error updating book', 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function destroy($id)
+    {
+        $book = Book::findOrFail($id);
+
+        try {
+            if ($book->cover_image) {
+                Storage::disk('public')->delete($book->cover_image);
+            }
+            if ($book->pdf_file) {
+                Storage::disk('public')->delete($book->pdf_file);
+            }
+
+            $book->delete();
+            return response()->json(['message' => 'Book deleted successfully']);
+
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error deleting book', 'error' => $e->getMessage()], 500);
+        }
+    }
 }

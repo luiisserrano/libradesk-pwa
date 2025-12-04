@@ -2,33 +2,33 @@
 
 return [
 
-    /*
-    |--------------------------------------------------------------------------
-    | Cross-Origin Resource Sharing (CORS) Configuration
-    |--------------------------------------------------------------------------
-    |
-    | Here you may configure your settings for cross-origin resource sharing
-    | or "CORS". This determines what cross-origin operations may execute
-    | in web browsers. You are free to adjust these settings as needed.
-    |
-    | To learn more: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
-    |
-    */
-
-    'paths' => ['api/*', 'sanctum/csrf-cookie'],
+    'paths' => [
+        'api/*',
+        'sanctum/csrf-cookie',
+        'login',
+        'logout',
+        'user',
+    ],
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['*'],
+    // SOLO se permiten estos orígenes
+    'allowed_origins' => [
+        'https://adc99ef3c87e.ngrok-free.app', // Frontend React PWA
+        'http://localhost:5173',              // Desarrollo local
+    ],
 
     'allowed_origins_patterns' => [],
 
-    'allowed_headers' => ['*'],
-
-    'exposed_headers' => [],
-
-    'max_age' => 0,
-
+    // Necesario porque usas withCredentials y tokens
     'supports_credentials' => true,
 
+    'allowed_headers' => ['*'],
+
+    'exposed_headers' => [
+        'Authorization',
+        'Content-Type',
+    ],
+
+    'max_age' => 0,
 ];

@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { IonMenu, IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonItem, IonIcon, IonLabel, IonToggle, IonAvatar } from '@ionic/react';
-import { personOutline, libraryOutline, bookOutline, cloudUploadOutline, logOutOutline, moonOutline, sunnyOutline } from 'ionicons/icons';
+import { personOutline, libraryOutline, bookOutline, cloudUploadOutline, logOutOutline, moonOutline, sunnyOutline, settingsOutline } from 'ionicons/icons';
 import { useHistory } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import UserAvatar from './UserAvatar';
 import './Sidebar.css';
+
+import logo from '../img/logo.png';
 
 const Sidebar: React.FC = () => {
     const history = useHistory();
@@ -13,6 +15,22 @@ const Sidebar: React.FC = () => {
         const saved = localStorage.getItem('user');
         return saved ? JSON.parse(saved) : null;
     });
+
+    const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+    React.useEffect(() => {
+        const handleStatusChange = () => {
+            setIsOnline(navigator.onLine);
+        };
+
+        window.addEventListener('online', handleStatusChange);
+        window.addEventListener('offline', handleStatusChange);
+
+        return () => {
+            window.removeEventListener('online', handleStatusChange);
+            window.removeEventListener('offline', handleStatusChange);
+        };
+    }, []);
 
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -26,7 +44,9 @@ const Sidebar: React.FC = () => {
         <IonMenu contentId="main-content" type="overlay">
             <IonHeader>
                 <IonToolbar color="primary">
-                    <IonTitle>LibraDesk</IonTitle>
+                    <div style={{ padding: '10px', display: 'flex', justifyContent: 'center' }}>
+                        <img src={logo} alt="LibraDesk Logo" style={{ height: '40px' }} />
+                    </div>
                 </IonToolbar>
             </IonHeader>
             <IonContent className="sidebar-content">
@@ -42,6 +62,27 @@ const Sidebar: React.FC = () => {
                         <h3>{user?.username || 'User'}</h3>
                         <p>{user?.email || ''}</p>
                     </div>
+                </div>
+
+                {/* Status Indicator */}
+                <div style={{
+                    padding: '10px 16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    backgroundColor: isOnline ? 'rgba(var(--ion-color-success-rgb), 0.1)' : 'rgba(var(--ion-color-danger-rgb), 0.1)',
+                    margin: '0 16px 10px 16px',
+                    borderRadius: '8px'
+                }}>
+                    <div style={{
+                        width: '10px',
+                        height: '10px',
+                        borderRadius: '50%',
+                        backgroundColor: isOnline ? 'var(--ion-color-success)' : 'var(--ion-color-danger)'
+                    }} />
+                    <IonLabel color={isOnline ? 'success' : 'danger'} style={{ fontSize: '0.9em', fontWeight: '500' }}>
+                        {isOnline ? 'Online' : 'Offline'}
+                    </IonLabel>
                 </div>
 
                 {/* Navigation Menu */}
@@ -62,10 +103,16 @@ const Sidebar: React.FC = () => {
                     </IonItem>
 
                     {isAdmin && (
-                        <IonItem button onClick={() => history.push('/admin-upload')}>
-                            <IonIcon icon={cloudUploadOutline} slot="start" />
-                            <IonLabel>Subir Libros</IonLabel>
-                        </IonItem>
+                        <>
+                            <IonItem button onClick={() => history.push('/admin')}>
+                                <IonIcon icon={settingsOutline} slot="start" />
+                                <IonLabel>Panel Admin</IonLabel>
+                            </IonItem>
+                            <IonItem button onClick={() => history.push('/admin-upload')}>
+                                <IonIcon icon={cloudUploadOutline} slot="start" />
+                                <IonLabel>Subir Libros</IonLabel>
+                            </IonItem>
+                        </>
                     )}
 
                     <IonItem>

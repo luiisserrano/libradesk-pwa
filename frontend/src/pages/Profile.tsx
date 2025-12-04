@@ -6,6 +6,7 @@ import {
 } from '@ionic/react';
 import UserAvatar from '../components/UserAvatar';
 import { updateProfile } from '../services/userService';
+import { biometricService } from '../services/biometricService';
 
 const Profile: React.FC = () => {
     const [user, setUser] = useState(() => {
@@ -150,6 +151,35 @@ const Profile: React.FC = () => {
                                 <IonButton expand="block" className="ion-margin-top" onClick={() => setIsEditing(true)}>
                                     Editar Perfil
                                 </IonButton>
+
+                                <div className="ion-margin-top ion-padding-top" style={{ borderTop: '1px solid var(--ion-color-light-shade)' }}>
+                                    <IonLabel color="medium"><h3>Seguridad y Acceso Offline</h3></IonLabel>
+                                    <IonButton
+                                        expand="block"
+                                        fill="outline"
+                                        className="ion-margin-top"
+                                        onClick={async () => {
+                                            const result = await biometricService.register();
+                                            if (result.success) {
+                                                // Save current session data for biometric login
+                                                const token = localStorage.getItem('token');
+                                                const user = localStorage.getItem('user');
+                                                if (token && user) {
+                                                    localStorage.setItem('biometric_token', token);
+                                                    localStorage.setItem('biometric_user', user);
+                                                }
+
+                                                setToastMessage('Acceso biométrico activado y datos guardados correctamente');
+                                                setShowToast(true);
+                                            } else {
+                                                setToastMessage(result.error || 'Error al activar acceso biométrico');
+                                                setShowToast(true);
+                                            }
+                                        }}
+                                    >
+                                        Activar Acceso con Huella/FaceID
+                                    </IonButton>
+                                </div>
                             </>
                         ) : (
                             <>
