@@ -15,7 +15,7 @@ export default defineConfig({
       devOptions: {
         enabled: true
       },
-      includeAssets: ['favicon.png', 'assets/**'],
+      includeAssets: ['assets/**'],
       manifest: {
         name: 'Libradesk',
         short_name: 'LibraDesk',
