@@ -46,19 +46,27 @@ class WebPushService
             $this->webPush->queueNotification($subscription, $payload);
         }
 
+        $successCount = 0;
+        $failCount = 0;
+
         foreach ($this->webPush->flush() as $report) {
             $endpoint = $report->getRequest()->getUri()->__toString();
 
             if ($report->isSuccess()) {
-                // echo "[v] Message sent successfully for subscription {$endpoint}.";
+                $successCount++;
+                \Illuminate\Support\Facades\Log::info("Push notification sent successfully to: " . substr($endpoint, 0, 50) . "...");
             } else {
-                // echo "[x] Message failed to sent for subscription {$endpoint}: {$report->getReason()}";
+                $failCount++;
+                \Illuminate\Support\Facades\Log::error("Push notification FAILED for: " . substr($endpoint, 0, 50) . "... Reason: " . $report->getReason());
 
                 // If the subscription is expired, delete it
                 if ($report->isSubscriptionExpired()) {
+                    \Illuminate\Support\Facades\Log::warning("Subscription expired, deleting: " . substr($endpoint, 0, 50));
                     PushSubscription::where('endpoint', $endpoint)->delete();
                 }
             }
         }
+
+        \Illuminate\Support\Facades\Log::info("Push notifications summary: {$successCount} sent, {$failCount} failed");
     }
 }
