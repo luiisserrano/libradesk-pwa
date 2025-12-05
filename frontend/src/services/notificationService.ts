@@ -1,6 +1,7 @@
 import api from './api';
 
-const VAPID_PUBLIC_KEY = 'BN3ccBTdkoEnk8K0T98dLAoeg7AojUXSmbgp__mC4oXsH9xeplguM4GLqvUw8WNO4APLZ_iUEWpksQXR-1mh1xU'; // Replace with your generated public key
+// VAPID public key must match the backend's VAPID_PUBLIC_KEY
+const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY || 'BOaUPQb3KiCLVo2Mc0cvNbr9ZG7H-10FTsa0G4ZLbn3_-ItcnrBdB4--TgiozvBt6diUTS4dxsIeAv8LFxOkZp8';
 
 function urlBase64ToUint8Array(base64String: string) {
     const padding = '='.repeat((4 - base64String.length % 4) % 4);
