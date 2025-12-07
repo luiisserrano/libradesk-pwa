@@ -6,19 +6,13 @@
   "icons": [
     {
       "src": "assets/icon/icon.png",
-      "sizes": "192x192",
+      "sizes": "any",
       "type": "image/png",
       "purpose": "any"
     },
     {
       "src": "assets/icon/icon.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "assets/icon/icon.png",
-      "sizes": "512x512",
+      "sizes": "any",
       "type": "image/png",
       "purpose": "maskable"
     }
@@ -29,6 +23,9 @@
   "orientation": "portrait",
   "theme_color": "#3880ff",
   "background_color": "#ffffff",
-  "categories": ["education", "productivity"],
+  "categories": [
+    "education",
+    "productivity"
+  ],
   "lang": "es-MX"
 }
