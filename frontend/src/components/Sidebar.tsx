@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { IonMenu, IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonItem, IonIcon, IonLabel, IonToggle, IonAvatar } from '@ionic/react';
 import { personOutline, libraryOutline, bookOutline, cloudUploadOutline, logOutOutline, moonOutline, sunnyOutline, settingsOutline } from 'ionicons/icons';
 import { useHistory } from 'react-router-dom';
@@ -11,6 +11,8 @@ import logo from '../img/logo.png';
 const Sidebar: React.FC = () => {
     const history = useHistory();
     const { isDark, toggleTheme } = useTheme();
+    const menuRef = useRef<HTMLIonMenuElement>(null);
+    const [isAnimating, setIsAnimating] = useState(false);
     const [user] = useState(() => {
         const saved = localStorage.getItem('user');
         return saved ? JSON.parse(saved) : null;
@@ -38,10 +40,29 @@ const Sidebar: React.FC = () => {
         history.push('/login');
     };
 
+    // Navegación con cierre de menú controlado
+    const handleNavigation = async (path: string) => {
+        if (isAnimating) return; // Prevenir navegación durante animación
+
+        if (menuRef.current) {
+            await menuRef.current.close();
+        }
+        history.push(path);
+    };
+
     const isAdmin = user?.role_id == 1;
 
     return (
-        <IonMenu contentId="main-content" type="overlay">
+        <IonMenu
+            contentId="main-content"
+            type="overlay"
+            ref={menuRef}
+            onIonWillOpen={() => setIsAnimating(true)}
+            onIonDidOpen={() => setIsAnimating(false)}
+            onIonWillClose={() => setIsAnimating(true)}
+            onIonDidClose={() => setIsAnimating(false)}
+        >
+
             <IonHeader>
                 <IonToolbar color="primary">
                     <div style={{ padding: '10px', display: 'flex', justifyContent: 'center' }}>
@@ -87,28 +108,28 @@ const Sidebar: React.FC = () => {
 
                 {/* Navigation Menu */}
                 <IonList>
-                    <IonItem button onClick={() => history.push('/profile')}>
+                    <IonItem button onClick={() => handleNavigation('/profile')} disabled={isAnimating}>
                         <IonIcon icon={personOutline} slot="start" />
                         <IonLabel>Mi Perfil</IonLabel>
                     </IonItem>
 
-                    <IonItem button onClick={() => history.push('/my-library')}>
+                    <IonItem button onClick={() => handleNavigation('/my-library')} disabled={isAnimating}>
                         <IonIcon icon={libraryOutline} slot="start" />
                         <IonLabel>Mi Biblioteca</IonLabel>
                     </IonItem>
 
-                    <IonItem button onClick={() => history.push('/home')}>
+                    <IonItem button onClick={() => handleNavigation('/home')} disabled={isAnimating}>
                         <IonIcon icon={bookOutline} slot="start" />
                         <IonLabel>Explorar Libros</IonLabel>
                     </IonItem>
 
                     {isAdmin && (
                         <>
-                            <IonItem button onClick={() => history.push('/admin')}>
+                            <IonItem button onClick={() => handleNavigation('/admin')} disabled={isAnimating}>
                                 <IonIcon icon={settingsOutline} slot="start" />
                                 <IonLabel>Panel Admin</IonLabel>
                             </IonItem>
-                            <IonItem button onClick={() => history.push('/admin-upload')}>
+                            <IonItem button onClick={() => handleNavigation('/admin-upload')} disabled={isAnimating}>
                                 <IonIcon icon={cloudUploadOutline} slot="start" />
                                 <IonLabel>Subir Libros</IonLabel>
                             </IonItem>

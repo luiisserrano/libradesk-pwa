@@ -4,13 +4,30 @@ import { downloadOutline, shareOutline, addCircleOutline } from 'ionicons/icons'
 
 import icon from '../img/icono.png';
 
+// Detectar si está ejecutándose como PWA instalada
+const isRunningAsPWA = (): boolean => {
+    return window.matchMedia('(display-mode: standalone)').matches ||
+        (window.navigator as any).standalone === true;
+};
+
+// Detectar si es dispositivo móvil
+const isMobileDevice = (): boolean => {
+    return /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+};
+
 const InstallPrompt: React.FC = () => {
     const [deferredPrompt, setDeferredPrompt] = useState<any>((window as any).deferredPrompt);
     const [isIOS, setIsIOS] = useState(false);
     const [isSecure, setIsSecure] = useState(true);
     const [debugInfo, setDebugInfo] = useState<string>('');
+    const [isPWA, setIsPWA] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
 
     useEffect(() => {
+        // Detectar si ya está instalada como PWA
+        setIsPWA(isRunningAsPWA());
+        setIsMobile(isMobileDevice());
+
         // Verificar si es contexto seguro (HTTPS o localhost)
         const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
         const isHttps = window.location.protocol === 'https:';
@@ -46,8 +63,16 @@ const InstallPrompt: React.FC = () => {
             setDeferredPrompt((window as any).deferredPrompt);
         }
 
+        // Escuchar cambios en display-mode (por si se instala mientras está abierta)
+        const mediaQuery = window.matchMedia('(display-mode: standalone)');
+        const handleDisplayModeChange = (e: MediaQueryListEvent) => {
+            setIsPWA(e.matches);
+        };
+        mediaQuery.addEventListener('change', handleDisplayModeChange);
+
         return () => {
             window.removeEventListener('beforeinstallprompt', handler);
+            mediaQuery.removeEventListener('change', handleDisplayModeChange);
         };
     }, []);
 
@@ -65,6 +90,11 @@ const InstallPrompt: React.FC = () => {
             (window as any).deferredPrompt = null;
         }
     };
+
+    // Si ya está ejecutándose como PWA instalada, no mostrar el prompt
+    if (isPWA) {
+        return null;
+    }
 
     return (
         <div style={{

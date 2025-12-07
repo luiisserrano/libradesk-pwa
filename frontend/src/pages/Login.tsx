@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonInput, IonButton, IonItem, IonLabel, IonToast } from '@ionic/react';
+import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonInput, IonButton, IonItem, IonLabel, IonToast, IonText, IonNote } from '@ionic/react';
 import { useHistory } from 'react-router-dom';
 import { login } from '../services/authService';
 import { biometricService } from '../services/biometricService';
 import InstallPrompt from '../components/InstallPrompt';
 
 import logo from '../img/logo.png';
+
+interface FieldErrors {
+    email?: string[];
+    password?: string[];
+}
 
 const Login: React.FC = () => {
     const [email, setEmail] = useState('');
@@ -14,6 +19,7 @@ const Login: React.FC = () => {
     const [toastMessage, setToastMessage] = useState('');
     const [showInstallPrompt, setShowInstallPrompt] = useState(false);
     const [isOnline, setIsOnline] = useState(navigator.onLine);
+    const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
     const history = useHistory();
 
     useEffect(() => {
@@ -48,16 +54,36 @@ const Login: React.FC = () => {
     }, []);
 
     const handleLogin = async () => {
+        // Limpiar errores anteriores
+        setFieldErrors({});
+
         try {
             const data = await login({ email, password });
             localStorage.setItem('token', data.token);
             localStorage.setItem('user', JSON.stringify(data.user));
             window.location.href = '/my-library';
-        } catch (error) {
-            setToastMessage('Login failed');
+        } catch (error: any) {
+            let message = 'Error al iniciar sesión';
+
+            if (error.response?.data) {
+                const responseData = error.response.data;
+
+                // Si hay errores de validación por campo
+                if (responseData.errors) {
+                    setFieldErrors(responseData.errors);
+                    message = responseData.message || 'Por favor corrige los errores en el formulario';
+                } else if (responseData.message) {
+                    message = responseData.message;
+                }
+            } else if (error.message) {
+                message = error.message;
+            }
+
+            setToastMessage(message);
             setShowToast(true);
         }
     };
+
 
     const handleBiometricLogin = async () => {
         const available = await biometricService.isAvailable();
@@ -112,14 +138,43 @@ const Login: React.FC = () => {
                 </div>
                 {isOnline ? (
                     <>
-                        <IonItem>
+                        <IonItem className={fieldErrors.email ? 'ion-invalid' : ''}>
                             <IonLabel position="floating">Email</IonLabel>
-                            <IonInput value={email} onIonChange={e => setEmail(e.detail.value!)} />
+                            <IonInput
+                                value={email}
+                                onIonChange={e => {
+                                    setEmail(e.detail.value!);
+                                    if (fieldErrors.email) {
+                                        setFieldErrors(prev => ({ ...prev, email: undefined }));
+                                    }
+                                }}
+                            />
                         </IonItem>
-                        <IonItem>
+                        {fieldErrors.email && (
+                            <IonText color="danger" style={{ fontSize: '0.85rem', padding: '4px 16px', display: 'block' }}>
+                                {fieldErrors.email[0]}
+                            </IonText>
+                        )}
+
+                        <IonItem className={fieldErrors.password ? 'ion-invalid' : ''}>
                             <IonLabel position="floating">Password</IonLabel>
-                            <IonInput type="password" value={password} onIonChange={e => setPassword(e.detail.value!)} />
+                            <IonInput
+                                type="password"
+                                value={password}
+                                onIonChange={e => {
+                                    setPassword(e.detail.value!);
+                                    if (fieldErrors.password) {
+                                        setFieldErrors(prev => ({ ...prev, password: undefined }));
+                                    }
+                                }}
+                            />
                         </IonItem>
+                        {fieldErrors.password && (
+                            <IonText color="danger" style={{ fontSize: '0.85rem', padding: '4px 16px', display: 'block' }}>
+                                {fieldErrors.password[0]}
+                            </IonText>
+                        )}
+
                         <IonButton expand="block" onClick={handleLogin} className="ion-margin-top">
                             Login
                         </IonButton>
@@ -127,6 +182,7 @@ const Login: React.FC = () => {
                             Create Account
                         </IonButton>
                     </>
+
                 ) : (
                     <div className="ion-text-center ion-padding">
                         <p style={{ color: 'var(--ion-color-warning)' }}>

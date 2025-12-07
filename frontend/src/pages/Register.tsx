@@ -1,9 +1,16 @@
 import React, { useState } from 'react';
-import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonInput, IonButton, IonItem, IonLabel, IonSelect, IonSelectOption, IonToast } from '@ionic/react';
+import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonInput, IonButton, IonItem, IonLabel, IonSelect, IonSelectOption, IonToast, IonText } from '@ionic/react';
 import { useHistory } from 'react-router-dom';
 import { register } from '../services/authService';
 
 import logo from '../img/logo.png';
+
+interface FieldErrors {
+    username?: string[];
+    email?: string[];
+    password?: string[];
+    profile_picture?: string[];
+}
 
 const Register: React.FC = () => {
     const [username, setUsername] = useState('');
@@ -12,9 +19,13 @@ const Register: React.FC = () => {
     const [file, setFile] = useState<File | null>(null);
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState('');
+    const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
     const history = useHistory();
 
     const handleRegister = async () => {
+        // Limpiar errores anteriores
+        setFieldErrors({});
+
         try {
             const formData = new FormData();
             formData.append('username', username);
@@ -29,20 +40,27 @@ const Register: React.FC = () => {
             localStorage.setItem('user', JSON.stringify(data.user));
             window.location.href = '/my-library';
         } catch (error: any) {
-            let message = 'Registration failed';
-            if (error.response && error.response.data && error.response.data.message) {
-                message = error.response.data.message;
-                if (error.response.data.errors) {
-                    const errors = Object.values(error.response.data.errors).flat();
-                    if (errors.length > 0) {
-                        message = errors[0] as string;
-                    }
+            let message = 'Error en el registro';
+
+            if (error.response?.data) {
+                const responseData = error.response.data;
+
+                // Si hay errores de validación por campo
+                if (responseData.errors) {
+                    setFieldErrors(responseData.errors);
+                    message = responseData.message || 'Por favor corrige los errores en el formulario';
+                } else if (responseData.message) {
+                    message = responseData.message;
                 }
+            } else if (error.message) {
+                message = error.message;
             }
+
             setToastMessage(message);
             setShowToast(true);
         }
     };
+
 
     const resizeImage = (file: File): Promise<File> => {
         return new Promise((resolve) => {
@@ -107,22 +125,71 @@ const Register: React.FC = () => {
                 <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px', marginTop: '20px' }}>
                     <img src={logo} alt="LibraDesk Logo" style={{ width: '150px', height: 'auto' }} />
                 </div>
-                <IonItem>
+                <IonItem className={fieldErrors.username ? 'ion-invalid' : ''}>
                     <IonLabel position="floating">Username</IonLabel>
-                    <IonInput value={username} onIonChange={e => setUsername(e.detail.value!)} />
+                    <IonInput
+                        value={username}
+                        onIonChange={e => {
+                            setUsername(e.detail.value!);
+                            if (fieldErrors.username) {
+                                setFieldErrors(prev => ({ ...prev, username: undefined }));
+                            }
+                        }}
+                    />
                 </IonItem>
-                <IonItem>
+                {fieldErrors.username && (
+                    <IonText color="danger" style={{ fontSize: '0.85rem', padding: '4px 16px', display: 'block' }}>
+                        {fieldErrors.username[0]}
+                    </IonText>
+                )}
+
+                <IonItem className={fieldErrors.email ? 'ion-invalid' : ''}>
                     <IonLabel position="floating">Email</IonLabel>
-                    <IonInput value={email} onIonChange={e => setEmail(e.detail.value!)} />
+                    <IonInput
+                        value={email}
+                        onIonChange={e => {
+                            setEmail(e.detail.value!);
+                            if (fieldErrors.email) {
+                                setFieldErrors(prev => ({ ...prev, email: undefined }));
+                            }
+                        }}
+                    />
                 </IonItem>
-                <IonItem>
+                {fieldErrors.email && (
+                    <IonText color="danger" style={{ fontSize: '0.85rem', padding: '4px 16px', display: 'block' }}>
+                        {fieldErrors.email[0]}
+                    </IonText>
+                )}
+
+                <IonItem className={fieldErrors.password ? 'ion-invalid' : ''}>
                     <IonLabel position="floating">Password</IonLabel>
-                    <IonInput type="password" value={password} onIonChange={e => setPassword(e.detail.value!)} />
+                    <IonInput
+                        type="password"
+                        value={password}
+                        onIonChange={e => {
+                            setPassword(e.detail.value!);
+                            if (fieldErrors.password) {
+                                setFieldErrors(prev => ({ ...prev, password: undefined }));
+                            }
+                        }}
+                    />
                 </IonItem>
+                {fieldErrors.password && (
+                    <IonText color="danger" style={{ fontSize: '0.85rem', padding: '4px 16px', display: 'block' }}>
+                        {fieldErrors.password[0]}
+                    </IonText>
+                )}
+
                 <IonItem>
                     <IonLabel>Profile Picture</IonLabel>
                     <input type="file" accept="image/*" onChange={handleFileChange} />
                 </IonItem>
+                {fieldErrors.profile_picture && (
+                    <IonText color="danger" style={{ fontSize: '0.85rem', padding: '4px 16px', display: 'block' }}>
+                        {fieldErrors.profile_picture[0]}
+                    </IonText>
+                )}
+
                 <IonButton expand="block" onClick={handleRegister} className="ion-margin-top">
                     Register
                 </IonButton>

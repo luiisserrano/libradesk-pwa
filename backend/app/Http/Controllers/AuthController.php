@@ -18,7 +18,7 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         try {
-            $request->validate([
+            $validated = $request->validate([
                 'username' => 'required|string|unique:users,username',
                 'email' => 'required|string|email|unique:users,email',
                 'password' => 'required|string|min:6',
@@ -60,34 +60,62 @@ class AuthController extends Controller
                 'token' => $result['token'],
             ], 201);
 
+        } catch (ValidationException $e) {
+            // Retornar errores de validación con código 422
+            return response()->json([
+                'message' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
         } catch (\Exception $e) {
             \Log::error('Registration error: ' . $e->getMessage());
-            return response()->json(['message' => 'Registration failed', 'error' => $e->getMessage()], 500);
+            return response()->json([
+                'message' => 'Error en el registro',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
+
 
     // Login
     public function login(Request $request)
     {
-        $request->validate([
-            'email' => 'required|string|email',
-            'password' => 'required|string',
-        ]);
-
-        if (!Auth::attempt($request->only('email', 'password'))) {
-            throw ValidationException::withMessages([
-                'email' => ['Invalid credentials'],
+        try {
+            $request->validate([
+                'email' => 'required|string|email',
+                'password' => 'required|string',
             ]);
+
+            if (!Auth::attempt($request->only('email', 'password'))) {
+                return response()->json([
+                    'message' => 'Credenciales inválidas',
+                    'errors' => [
+                        'email' => ['El email o la contraseña son incorrectos']
+                    ]
+                ], 422);
+            }
+
+            $user = User::where('email', $request->email)->firstOrFail();
+            $token = $user->createToken('auth_token')->plainTextToken;
+
+            return response()->json([
+                'user' => $user->load('role'),
+                'token' => $token,
+            ]);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('Login error: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Error al iniciar sesión',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        $user = User::where('email', $request->email)->firstOrFail();
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        return response()->json([
-            'user' => $user->load('role'),
-            'token' => $token,
-        ]);
     }
+
 
     // Logout
     public function logout(Request $request)
@@ -164,10 +192,15 @@ class AuthController extends Controller
                 'message' => 'Profile updated successfully'
             ]);
 
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
         } catch (\Exception $e) {
             \Log::error('Profile update error: ' . $e->getMessage());
             return response()->json([
-                'message' => 'Profile update failed',
+                'message' => 'Error al actualizar perfil',
                 'error' => $e->getMessage()
             ], 500);
         }
