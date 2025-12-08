@@ -17,6 +17,8 @@ return [
         'https://adc99ef3c87e.ngrok-free.app', // Frontend React PWA
         'http://localhost:5173',              // Desarrollo local PWA
         'http://localhost:3001',              // Panel de Administración
+        'https://digilady.online',
+        'https://www.digilady.online'
     ],
 
     'allowed_origins_patterns' => [],
