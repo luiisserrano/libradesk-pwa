@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -7,10 +8,15 @@ export default function Layout() {
   const { user, logout } = useAuth();
   const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
+  };
+
+  const closeSidebar = () => {
+    setSidebarOpen(false);
   };
 
   const navItems = [
@@ -24,10 +30,23 @@ export default function Layout() {
 
   return (
     <div className="layout">
-      <aside className="sidebar">
+      {/* Mobile header */}
+      <header className="mobile-header">
+        <button className="menu-btn" onClick={() => setSidebarOpen(true)}>
+          ☰
+        </button>
+        <h1 className="mobile-logo">📖 LibraDesk</h1>
+        <div className="mobile-header-spacer"></div>
+      </header>
+
+      {/* Overlay for mobile */}
+      {sidebarOpen && <div className="sidebar-overlay" onClick={closeSidebar}></div>}
+
+      <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
           <h1 className="logo">📖 LibraDesk</h1>
           <span className="logo-subtitle">Panel Admin</span>
+          <button className="close-sidebar-btn" onClick={closeSidebar}>✕</button>
         </div>
 
         <nav className="sidebar-nav">
@@ -37,6 +56,7 @@ export default function Layout() {
               to={item.path}
               end={item.path === '/'}
               className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+              onClick={closeSidebar}
             >
               <span className="nav-icon">{item.icon}</span>
               {item.label}

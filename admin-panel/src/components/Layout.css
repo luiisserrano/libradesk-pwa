@@ -3,6 +3,68 @@
   min-height: 100vh;
 }
 
+/* Mobile header - hidden on desktop */
+.mobile-header {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 1rem;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 40;
+}
+
+.menu-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  padding: 0.5rem;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.mobile-logo {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.mobile-header-spacer {
+  width: 40px;
+}
+
+/* Sidebar overlay for mobile */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 45;
+}
+
+/* Close button - hidden on desktop */
+.close-sidebar-btn {
+  display: none;
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0.25rem;
+}
+
+.close-sidebar-btn:hover {
+  color: var(--text);
+}
+
 .sidebar {
   width: var(--sidebar-width);
   background: var(--surface);
@@ -13,7 +75,8 @@
   height: 100vh;
   left: 0;
   top: 0;
-  transition: background-color 0.3s, border-color 0.3s;
+  transition: transform 0.3s ease, background-color 0.3s, border-color 0.3s;
+  z-index: 50;
 }
 
 .sidebar-header {
@@ -144,16 +207,46 @@
 }
 
 @media (max-width: 768px) {
+  .mobile-header {
+    display: flex;
+  }
+
+  .sidebar-overlay {
+    display: block;
+  }
+
+  .close-sidebar-btn {
+    display: block;
+  }
+
   .sidebar {
     transform: translateX(-100%);
-    z-index: 50;
+    width: 280px;
   }
 
   .sidebar.open {
     transform: translateX(0);
   }
 
+  .sidebar-header {
+    position: relative;
+  }
+
   .main-content {
     margin-left: 0;
+    padding: 1rem;
+    padding-top: calc(60px + 1rem);
+  }
+}
+
+/* Small mobile adjustments */
+@media (max-width: 480px) {
+  .main-content {
+    padding: 0.75rem;
+    padding-top: calc(60px + 0.75rem);
+  }
+
+  .sidebar {
+    width: 100%;
   }
 }

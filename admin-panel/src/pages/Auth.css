@@ -85,3 +85,16 @@
 .auth-footer a:hover {
   text-decoration: underline;
 }
+
+/* Input error styles */
+.input-error {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+}
+
+.field-error {
+  display: block;
+  color: #f87171;
+  font-size: 0.8rem;
+  margin-top: 0.4rem;
+}

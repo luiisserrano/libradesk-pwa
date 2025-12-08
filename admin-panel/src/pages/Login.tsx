@@ -3,10 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import './Auth.css';
 
+interface FieldErrors {
+  email?: string[];
+  password?: string[];
+}
+
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -14,13 +20,19 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setFieldErrors({});
     setLoading(true);
 
     try {
       await login(email, password);
       navigate('/');
     } catch (err: any) {
-      setError(err.message || 'Error al iniciar sesión. Verifica tus credenciales.');
+      // Verificar si hay errores de validación por campo
+      if (err.errors) {
+        setFieldErrors(err.errors);
+      } else {
+        setError(err.message || 'Error al iniciar sesión. Verifica tus credenciales.');
+      }
     } finally {
       setLoading(false);
     }
@@ -43,24 +55,30 @@ export default function Login() {
             <label className="form-label">Email</label>
             <input
               type="email"
-              className="form-input"
+              className={`form-input ${fieldErrors.email ? 'input-error' : ''}`}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="tu@email.com"
               required
             />
+            {fieldErrors.email && (
+              <span className="field-error">{fieldErrors.email[0]}</span>
+            )}
           </div>
 
           <div className="form-group">
             <label className="form-label">Contraseña</label>
             <input
               type="password"
-              className="form-input"
+              className={`form-input ${fieldErrors.password ? 'input-error' : ''}`}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               required
             />
+            {fieldErrors.password && (
+              <span className="field-error">{fieldErrors.password[0]}</span>
+            )}
           </div>
 
           <button type="submit" className="btn btn-primary auth-btn" disabled={loading}>
