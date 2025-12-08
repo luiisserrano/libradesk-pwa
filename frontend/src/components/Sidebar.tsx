@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { IonMenu, IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonItem, IonIcon, IonLabel, IonToggle, IonAvatar } from '@ionic/react';
-import { personOutline, libraryOutline, bookOutline, cloudUploadOutline, logOutOutline, moonOutline, sunnyOutline, settingsOutline } from 'ionicons/icons';
+import { personOutline, libraryOutline, bookOutline, logOutOutline, moonOutline, sunnyOutline } from 'ionicons/icons';
 import { useHistory } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import UserAvatar from './UserAvatar';
@@ -49,8 +49,6 @@ const Sidebar: React.FC = () => {
         }
         history.push(path);
     };
-
-    const isAdmin = user?.role_id == 1;
 
     return (
         <IonMenu
@@ -122,19 +120,6 @@ const Sidebar: React.FC = () => {
                         <IonIcon icon={bookOutline} slot="start" />
                         <IonLabel>Explorar Libros</IonLabel>
                     </IonItem>
-
-                    {isAdmin && (
-                        <>
-                            <IonItem button onClick={() => handleNavigation('/admin')} disabled={isAnimating}>
-                                <IonIcon icon={settingsOutline} slot="start" />
-                                <IonLabel>Panel Admin</IonLabel>
-                            </IonItem>
-                            <IonItem button onClick={() => handleNavigation('/admin-upload')} disabled={isAnimating}>
-                                <IonIcon icon={cloudUploadOutline} slot="start" />
-                                <IonLabel>Subir Libros</IonLabel>
-                            </IonItem>
-                        </>
-                    )}
 
                     <IonItem>
                         <IonIcon icon={isDark ? moonOutline : sunnyOutline} slot="start" />

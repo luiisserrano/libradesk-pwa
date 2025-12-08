@@ -1,27 +1,17 @@
 import React from 'react';
 import { Redirect, Route } from 'react-router-dom';
-import { IonApp, IonRouterOutlet, IonSplitPane, setupIonicReact } from '@ionic/react';
+import { IonApp, IonRouterOutlet, setupIonicReact } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Home from './pages/Home';
-import AdminUpload from './pages/AdminUpload';
 import MyLibrary from './pages/MyLibrary';
 import Reader from './pages/Reader';
 import Profile from './pages/Profile';
 import OfflineLogin from './pages/OfflineLogin';
 import MainLayout from './pages/MainLayout';
-import Sidebar from './components/Sidebar';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { notificationService } from './services/notificationService';
-
-// Admin Pages
-import AdminRoute from './components/AdminRoute';
-import AdminDashboard from './pages/Admin/AdminDashboard';
-import ManageUsers from './pages/Admin/ManageUsers';
-import ManageBooks from './pages/Admin/ManageBooks';
-import ManageGenres from './pages/Admin/ManageGenres';
-import ManageAuthors from './pages/Admin/ManageAuthors';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
@@ -80,14 +70,7 @@ const App: React.FC = () => (
           <Route exact path="/offline-login" component={OfflineLogin} />
           <Route exact path="/" render={() => <Redirect to="/login" />} />
 
-          {/* Admin Routes */}
-          <AdminRoute exact path="/admin" component={AdminDashboard} />
-          <AdminRoute exact path="/admin/users" component={ManageUsers} />
-          <AdminRoute exact path="/admin/books" component={ManageBooks} />
-          <AdminRoute exact path="/admin/genres" component={ManageGenres} />
-          <AdminRoute exact path="/admin/authors" component={ManageAuthors} />
-
-          <Route path={['/home', '/profile', '/admin-upload', '/my-library', '/reader/:id']} render={() => {
+          <Route path={['/home', '/profile', '/my-library', '/reader/:id']} render={() => {
             // Simple guard for offline access
             const hasToken = localStorage.getItem('token');
             const isOfflineAuth = sessionStorage.getItem('offline_authenticated');

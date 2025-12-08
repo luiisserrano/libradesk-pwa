@@ -4,7 +4,6 @@ import { Route, Redirect } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Home from './Home';
 import Profile from './Profile';
-import AdminUpload from './AdminUpload';
 import MyLibrary from './MyLibrary';
 import Reader from './Reader';
 import InstallPrompt from '../components/InstallPrompt';
@@ -58,7 +57,6 @@ const MainLayout: React.FC = () => {
             <IonRouterOutlet id="main-content">
                 <Route exact path="/home" component={Home} />
                 <Route exact path="/profile" component={Profile} />
-                <Route exact path="/admin-upload" component={AdminUpload} />
                 <Route exact path="/my-library" component={MyLibrary} />
                 <Route exact path="/reader/:id" component={Reader} />
                 <Route exact path="/">

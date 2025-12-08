@@ -15,7 +15,8 @@ return [
     // SOLO se permiten estos orígenes
     'allowed_origins' => [
         'https://adc99ef3c87e.ngrok-free.app', // Frontend React PWA
-        'http://localhost:5173',              // Desarrollo local
+        'http://localhost:5173',              // Desarrollo local PWA
+        'http://localhost:3001',              // Panel de Administración
     ],
 
     'allowed_origins_patterns' => [],

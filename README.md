@@ -8,13 +8,15 @@ LibraDesk es una plataforma completa para gestionar y leer libros digitales. Inc
 
 ## 🏗️ Estructura del Proyecto
 
-El proyecto está dividido en dos aplicaciones principales:
+El proyecto está dividido en tres aplicaciones principales:
 
-- **`frontend/`** - Aplicación React con Ionic Framework
+- **`frontend/`** - PWA para usuarios (React + Ionic Framework)
+- **`admin-panel/`** - Panel de administración web (React)
 - **`backend/`** - API REST con Laravel
 
 ## ✨ Características
 
+### PWA (Usuarios)
 - 🔐 Autenticación de usuarios (login/registro)
 - 👤 Gestión de perfiles con foto
 - 📖 Biblioteca personal de libros
@@ -22,7 +24,14 @@ El proyecto está dividido en dos aplicaciones principales:
 - 🎨 Modo oscuro
 - 📱 Diseño responsive (PWA)
 - 🔍 Exploración de libros disponibles
-- ⬆️ Carga de libros (solo administradores)
+- 📴 Soporte offline
+
+### Panel de Administración
+- 👥 Gestión de usuarios y roles
+- 📚 Gestión de libros (subir, editar, eliminar)
+- 🏷️ Gestión de géneros literarios
+- ✍️ Gestión de autores
+- 🔔 Envío de notificaciones push
 
 ## 🚀 Instalación
 
@@ -38,7 +47,7 @@ php artisan storage:link
 php artisan serve
 ```
 
-### Frontend (React + Ionic)
+### Frontend PWA (React + Ionic)
 
 ```bash
 cd frontend
@@ -46,15 +55,32 @@ npm install
 npm run dev
 ```
 
+### Panel de Administración
+
+```bash
+cd admin-panel
+npm install
+cp .env.example .env
+# Editar .env con la URL del backend
+npm run dev
+```
+
 ## 🛠️ Tecnologías
 
-### Frontend
+### Frontend (PWA)
 - React 19
 - Ionic Framework 8
 - TypeScript
 - Vite
 - Axios
-- React Router
+- React Router v5
+
+### Panel de Administración
+- React 18
+- React Router v6
+- TypeScript
+- Vite
+- Axios
 
 ### Backend
 - Laravel 11

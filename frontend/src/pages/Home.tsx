@@ -11,7 +11,6 @@ import {
   IonCardContent,
   IonButton,
   IonButtons,
-  IonIcon,
   IonMenuButton,
   IonGrid,
   IonRow,
@@ -23,7 +22,6 @@ import {
 } from '@ionic/react';
 import { useHistory } from 'react-router-dom';
 import { getBooks, addBookToLibrary } from '../services/bookService';
-import { add } from 'ionicons/icons';
 import BookCover from '../components/BookCover';
 
 const Home: React.FC = () => {
@@ -31,8 +29,6 @@ const Home: React.FC = () => {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const history = useHistory();
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const isAdmin = user.role_id == 1;
 
   const [addingBookId, setAddingBookId] = useState<number | null>(null);
 
@@ -75,13 +71,6 @@ const Home: React.FC = () => {
             <IonMenuButton />
           </IonButtons>
           <IonTitle>Explorar Libros</IonTitle>
-          {isAdmin && (
-            <IonButtons slot="end">
-              <IonButton routerLink="/admin-upload">
-                <IonIcon slot="icon-only" icon={add} />
-              </IonButton>
-            </IonButtons>
-          )}
         </IonToolbar>
       </IonHeader>
 
