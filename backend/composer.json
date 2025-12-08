@@ -11,6 +11,10 @@
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10.1",
         "minishlink/web-push": "^9.0",
+        "nyholm/psr7": "^1.8",
+        "railsware/mailtrap-php": "^3.9",
+        "resend/resend-laravel": "^1.0",
+        "symfony/http-client": "^7.4",
         "symfony/mailtrap-mailer": "^7.4"
     },
     "require-dev": {
