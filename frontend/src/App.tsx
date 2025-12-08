@@ -10,6 +10,7 @@ import Reader from './pages/Reader';
 import Profile from './pages/Profile';
 import OfflineLogin from './pages/OfflineLogin';
 import MainLayout from './pages/MainLayout';
+import UpdatePrompt from './components/UpdatePrompt';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { notificationService } from './services/notificationService';
 
@@ -57,6 +58,7 @@ const NotificationInitializer: React.FC = () => {
 const App: React.FC = () => (
   <IonApp>
     <ThemeProvider>
+      <UpdatePrompt />
       <IonReactRouter>
         <NotificationInitializer />
         <IonRouterOutlet>

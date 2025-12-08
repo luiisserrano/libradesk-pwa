@@ -1,4 +1,5 @@
-const CACHE_NAME = 'libradesk-v1';
+const CACHE_VERSION = 'v2';
+const CACHE_NAME = 'libradesk-' + CACHE_VERSION;
 const urlsToCache = [
     '/',
     '/index.html',
@@ -18,6 +19,16 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+    // Network first for API calls
+    if (event.request.url.includes('/api/')) {
+        event.respondWith(
+            fetch(event.request)
+                .catch(() => caches.match(event.request))
+        );
+        return;
+    }
+    
+    // Cache first for static assets
     event.respondWith(
         caches.match(event.request)
             .then((response) => {
@@ -30,15 +41,15 @@ self.addEventListener('fetch', (event) => {
 });
 
 self.addEventListener('activate', (event) => {
-    const cacheWhitelist = [CACHE_NAME];
-    // Tell the active service worker to take control of the page immediately.
+    // Delete ALL old caches
     event.waitUntil(
         Promise.all([
             self.clients.claim(),
             caches.keys().then((cacheNames) => {
                 return Promise.all(
                     cacheNames.map((cacheName) => {
-                        if (cacheWhitelist.indexOf(cacheName) === -1) {
+                        if (cacheName !== CACHE_NAME) {
+                            console.log('Deleting old cache:', cacheName);
                             return caches.delete(cacheName);
                         }
                     })
@@ -46,4 +57,11 @@ self.addEventListener('activate', (event) => {
             })
         ])
     );
+});
+
+// Listen for skip waiting message
+self.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'SKIP_WAITING') {
+        self.skipWaiting();
+    }
 });
