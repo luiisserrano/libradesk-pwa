@@ -36,11 +36,8 @@ const Login: React.FC = () => {
             // Detectar si ya está en modo standalone (PWA instalada)
             const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
 
-            // Verificar si el usuario ya dijo que la instaló
-            const userSaysInstalled = localStorage.getItem('pwa_installed') === 'true';
-
-            // Si es móvil y NO está instalada y NO ha dicho que ya la tiene, mostrar prompt
-            if (isMobile && !isStandalone && !userSaysInstalled) {
+            // Si es móvil y NO está instalada, mostrar prompt
+            if (isMobile && !isStandalone) {
                 setShowInstallPrompt(true);
             }
         };
@@ -201,16 +198,6 @@ const Login: React.FC = () => {
                     message={toastMessage}
                     duration={2000}
                 />
-
-                {/* Botón para reinstalar si se ocultó el prompt */}
-                <div style={{ marginTop: '20px', textAlign: 'center' }}>
-                    <IonButton fill="clear" size="small" color="medium" onClick={() => {
-                        localStorage.removeItem('pwa_installed');
-                        setShowInstallPrompt(true);
-                    }}>
-                        ¿No has instalado la app? Haz clic aquí
-                    </IonButton>
-                </div>
             </IonContent>
         </IonPage>
     );

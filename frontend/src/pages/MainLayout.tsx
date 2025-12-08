@@ -21,15 +21,10 @@ const isMobileDevice = (): boolean => {
 
 const MainLayout: React.FC = () => {
     const [showInstallPrompt, setShowInstallPrompt] = useState(false);
-    const [hasSkippedInstall, setHasSkippedInstall] = useState(false);
 
     useEffect(() => {
-        // Verificar si el usuario ya saltó la instalación
-        const skipped = localStorage.getItem('pwa_installed') === 'true';
-        setHasSkippedInstall(skipped);
-
-        // Mostrar prompt solo si: es móvil + no está instalada como PWA + no ha saltado antes
-        const shouldShow = isMobileDevice() && !isRunningAsPWA() && !skipped;
+        // Mostrar prompt solo si: es móvil + no está instalada como PWA
+        const shouldShow = isMobileDevice() && !isRunningAsPWA();
         setShowInstallPrompt(shouldShow);
 
         // Escuchar cambios en display-mode

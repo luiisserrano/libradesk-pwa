@@ -19,7 +19,6 @@ const InstallPrompt: React.FC = () => {
     const [deferredPrompt, setDeferredPrompt] = useState<any>((window as any).deferredPrompt);
     const [isIOS, setIsIOS] = useState(false);
     const [isSecure, setIsSecure] = useState(true);
-    const [debugInfo, setDebugInfo] = useState<string>('');
     const [isPWA, setIsPWA] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
 
@@ -37,15 +36,6 @@ const InstallPrompt: React.FC = () => {
         const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
         setIsIOS(ios);
 
-        // Actualizar debug info
-        const updateDebugInfo = () => {
-            const swStatus = navigator.serviceWorker?.controller ? 'Active' : 'None';
-            const secureContext = window.isSecureContext ? 'Yes' : 'No';
-            setDebugInfo(`SecureCtx: ${secureContext}, SW: ${swStatus}, iOS: ${ios}, Prompt: ${!!(window as any).deferredPrompt}`);
-        };
-
-        updateDebugInfo();
-
         // Manual SW registration removed to avoid conflicts with vite-plugin-pwa
 
         // Escuchar evento para Android/Chrome
@@ -53,7 +43,6 @@ const InstallPrompt: React.FC = () => {
             e.preventDefault();
             setDeferredPrompt(e);
             (window as any).deferredPrompt = e;
-            setDebugInfo(prev => prev + ' | Event Fired!');
         };
 
         window.addEventListener('beforeinstallprompt', handler);
@@ -150,9 +139,6 @@ const InstallPrompt: React.FC = () => {
                                 <IonIcon slot="start" icon={downloadOutline} />
                                 {deferredPrompt ? 'Instalar Aplicación' : 'Instalación no disponible'}
                             </IonButton>
-                            <p style={{ fontSize: '0.8rem', color: '#999', marginTop: '10px' }}>
-                                Debug: {debugInfo}
-                            </p>
                         </>
                     )}
 
@@ -163,15 +149,6 @@ const InstallPrompt: React.FC = () => {
                             </p>
                         </div>
                     )}
-
-                    <div style={{ marginTop: '30px', borderTop: '1px solid #ddd', paddingTop: '20px', width: '100%' }}>
-                        <IonButton fill="clear" expand="block" color="medium" onClick={() => {
-                            localStorage.setItem('pwa_installed', 'true');
-                            window.location.reload();
-                        }}>
-                            Ya la instalé / Continuar en Navegador
-                        </IonButton>
-                    </div>
                 </IonCardContent>
             </IonCard>
         </div>
