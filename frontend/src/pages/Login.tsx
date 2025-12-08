@@ -20,6 +20,7 @@ const Login: React.FC = () => {
     const [showInstallPrompt, setShowInstallPrompt] = useState(false);
     const [isOnline, setIsOnline] = useState(navigator.onLine);
     const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+    const [isMobile, setIsMobile] = useState(false);
     const history = useHistory();
 
     useEffect(() => {
@@ -31,13 +32,14 @@ const Login: React.FC = () => {
 
         const checkDevice = () => {
             // Detectar si es móvil (ancho de pantalla o user agent)
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+            const mobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            setIsMobile(mobile);
 
             // Detectar si ya está en modo standalone (PWA instalada)
             const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
 
             // Si es móvil y NO está instalada, mostrar prompt
-            if (isMobile && !isStandalone) {
+            if (mobile && !isStandalone) {
                 setShowInstallPrompt(true);
             }
         };
@@ -189,9 +191,11 @@ const Login: React.FC = () => {
                     </div>
                 )}
 
-                <IonButton expand="block" color="secondary" onClick={handleBiometricLogin} className="ion-margin-top">
-                    Login with Fingerprint
-                </IonButton>
+                {isMobile && (
+                    <IonButton expand="block" color="secondary" onClick={handleBiometricLogin} className="ion-margin-top">
+                        Login with Fingerprint
+                    </IonButton>
+                )}
                 <IonToast
                     isOpen={showToast}
                     onDidDismiss={() => setShowToast(false)}
