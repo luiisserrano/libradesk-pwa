@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonInput, IonButton, IonItem, IonLabel, IonSelect, IonSelectOption, IonToast, IonText } from '@ionic/react';
 import { useHistory } from 'react-router-dom';
 import { register } from '../services/authService';
+import ReCaptcha from '../components/ReCaptcha';
+import ReCAPTCHA from 'react-google-recaptcha';
 
 import logo from '../img/logo.png';
 
@@ -21,11 +23,35 @@ const Register: React.FC = () => {
     const [toastMessage, setToastMessage] = useState('');
     const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
     const [registrationSuccess, setRegistrationSuccess] = useState(false);
+    const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+    const [isOnline, setIsOnline] = useState(navigator.onLine);
+    const recaptchaRef = useRef<ReCAPTCHA>(null);
     const history = useHistory();
+
+    // Escuchar cambios de conexión
+    React.useEffect(() => {
+        const handleOnline = () => setIsOnline(true);
+        const handleOffline = () => setIsOnline(false);
+
+        window.addEventListener('online', handleOnline);
+        window.addEventListener('offline', handleOffline);
+
+        return () => {
+            window.removeEventListener('online', handleOnline);
+            window.removeEventListener('offline', handleOffline);
+        };
+    }, []);
 
     const handleRegister = async () => {
         // Limpiar errores anteriores
         setFieldErrors({});
+
+        // Verificar captcha si está online
+        if (navigator.onLine && !captchaToken) {
+            setToastMessage('Por favor completa el captcha');
+            setShowToast(true);
+            return;
+        }
 
         try {
             const formData = new FormData();
@@ -66,6 +92,9 @@ const Register: React.FC = () => {
 
             setToastMessage(message);
             setShowToast(true);
+            // Reset captcha on error
+            recaptchaRef.current?.reset();
+            setCaptchaToken(null);
         }
     };
 
@@ -237,7 +266,13 @@ const Register: React.FC = () => {
                     </IonText>
                 )}
 
-                <IonButton expand="block" onClick={handleRegister} className="ion-margin-top">
+                <ReCaptcha 
+                    recaptchaRef={recaptchaRef}
+                    onVerify={(token) => setCaptchaToken(token)} 
+                    onExpire={() => setCaptchaToken(null)}
+                />
+
+                <IonButton expand="block" onClick={handleRegister} className="ion-margin-top" disabled={isOnline && !captchaToken}>
                     Register
                 </IonButton>
                 <IonToast

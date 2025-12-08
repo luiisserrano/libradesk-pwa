@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonInput, IonButton, IonItem, IonLabel, IonToast, IonText, IonNote, IonSpinner } from '@ionic/react';
 import { useHistory } from 'react-router-dom';
 import { login } from '../services/authService';
 import { biometricService } from '../services/biometricService';
 import api from '../services/api';
 import InstallPrompt from '../components/InstallPrompt';
+import ReCaptcha from '../components/ReCaptcha';
+import ReCAPTCHA from 'react-google-recaptcha';
 
 import logo from '../img/logo.png';
 
@@ -24,6 +26,8 @@ const Login: React.FC = () => {
     const [isMobile, setIsMobile] = useState(false);
     const [needsVerification, setNeedsVerification] = useState(false);
     const [resendingEmail, setResendingEmail] = useState(false);
+    const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+    const recaptchaRef = useRef<ReCAPTCHA>(null);
     const history = useHistory();
 
     useEffect(() => {
@@ -60,6 +64,13 @@ const Login: React.FC = () => {
         setFieldErrors({});
         setNeedsVerification(false);
 
+        // Verificar captcha si está online
+        if (navigator.onLine && !captchaToken) {
+            setToastMessage('Por favor completa el captcha');
+            setShowToast(true);
+            return;
+        }
+
         try {
             const data = await login({ email, password });
             localStorage.setItem('token', data.token);
@@ -90,6 +101,9 @@ const Login: React.FC = () => {
 
             setToastMessage(message);
             setShowToast(true);
+            // Reset captcha on error
+            recaptchaRef.current?.reset();
+            setCaptchaToken(null);
         }
     };
 
@@ -255,7 +269,13 @@ const Login: React.FC = () => {
                             </IonText>
                         )}
 
-                        <IonButton expand="block" onClick={handleLogin} className="ion-margin-top">
+                        <ReCaptcha 
+                            recaptchaRef={recaptchaRef}
+                            onVerify={(token) => setCaptchaToken(token)} 
+                            onExpire={() => setCaptchaToken(null)}
+                        />
+
+                        <IonButton expand="block" onClick={handleLogin} className="ion-margin-top" disabled={!captchaToken}>
                             Login
                         </IonButton>
                         <IonButton expand="block" fill="clear" routerLink="/register">
