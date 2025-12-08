@@ -1,9 +1,16 @@
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v3';
 const CACHE_NAME = 'libradesk-' + CACHE_VERSION;
 const urlsToCache = [
     '/',
     '/index.html',
     '/manifest.json'
+];
+
+// URLs that should NEVER be cached
+const NEVER_CACHE = [
+    '/api/',
+    'api.digilady.online',
+    'localhost:8000'
 ];
 
 self.addEventListener('install', (event) => {
@@ -19,12 +26,11 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-    // Network first for API calls
-    if (event.request.url.includes('/api/')) {
-        event.respondWith(
-            fetch(event.request)
-                .catch(() => caches.match(event.request))
-        );
+    const url = event.request.url;
+    
+    // NEVER cache API requests - always go to network
+    if (NEVER_CACHE.some(pattern => url.includes(pattern))) {
+        event.respondWith(fetch(event.request));
         return;
     }
     
