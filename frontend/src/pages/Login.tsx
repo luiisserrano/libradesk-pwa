@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonInput, IonButton, IonItem, IonLabel, IonToast, IonText, IonNote } from '@ionic/react';
+import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonInput, IonButton, IonItem, IonLabel, IonToast, IonText, IonNote, IonSpinner } from '@ionic/react';
 import { useHistory } from 'react-router-dom';
 import { login } from '../services/authService';
 import { biometricService } from '../services/biometricService';
+import api from '../services/api';
 import InstallPrompt from '../components/InstallPrompt';
 
 import logo from '../img/logo.png';
@@ -21,6 +22,8 @@ const Login: React.FC = () => {
     const [isOnline, setIsOnline] = useState(navigator.onLine);
     const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
     const [isMobile, setIsMobile] = useState(false);
+    const [needsVerification, setNeedsVerification] = useState(false);
+    const [resendingEmail, setResendingEmail] = useState(false);
     const history = useHistory();
 
     useEffect(() => {
@@ -55,6 +58,7 @@ const Login: React.FC = () => {
     const handleLogin = async () => {
         // Limpiar errores anteriores
         setFieldErrors({});
+        setNeedsVerification(false);
 
         try {
             const data = await login({ email, password });
@@ -66,6 +70,12 @@ const Login: React.FC = () => {
 
             if (error.response?.data) {
                 const responseData = error.response.data;
+
+                // Verificar si necesita verificación de email
+                if (responseData.requires_verification) {
+                    setNeedsVerification(true);
+                    return;
+                }
 
                 // Si hay errores de validación por campo
                 if (responseData.errors) {
@@ -80,6 +90,20 @@ const Login: React.FC = () => {
 
             setToastMessage(message);
             setShowToast(true);
+        }
+    };
+
+    const handleResendVerification = async () => {
+        setResendingEmail(true);
+        try {
+            await api.post('/email/resend', { email });
+            setToastMessage('Correo de verificación enviado. Revisa tu bandeja de entrada.');
+            setShowToast(true);
+        } catch (error: any) {
+            setToastMessage(error.response?.data?.message || 'Error al reenviar el correo');
+            setShowToast(true);
+        } finally {
+            setResendingEmail(false);
         }
     };
 
@@ -122,6 +146,63 @@ const Login: React.FC = () => {
 
     if (showInstallPrompt) {
         return <InstallPrompt />;
+    }
+
+    // Mostrar mensaje de verificación pendiente
+    if (needsVerification) {
+        return (
+            <IonPage>
+                <IonHeader>
+                    <IonToolbar>
+                        <IonTitle>Verificación Pendiente</IonTitle>
+                    </IonToolbar>
+                </IonHeader>
+                <IonContent className="ion-padding">
+                    <div style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        minHeight: '70vh',
+                        textAlign: 'center',
+                        padding: '20px'
+                    }}>
+                        <div style={{ fontSize: '80px', marginBottom: '20px' }}>📧</div>
+                        <h2 style={{ color: 'var(--ion-color-warning)', marginBottom: '10px' }}>
+                            Verifica tu correo
+                        </h2>
+                        <p style={{ marginBottom: '20px', maxWidth: '350px' }}>
+                            Debes verificar tu correo electrónico <strong>{email}</strong> antes de poder iniciar sesión.
+                        </p>
+                        <p style={{ color: 'var(--ion-color-medium)', fontSize: '0.9rem', marginBottom: '30px' }}>
+                            Revisa tu bandeja de entrada y haz clic en el enlace de verificación.
+                        </p>
+                        <IonButton 
+                            expand="block" 
+                            onClick={handleResendVerification}
+                            disabled={resendingEmail}
+                            style={{ marginBottom: '15px', maxWidth: '300px' }}
+                        >
+                            {resendingEmail ? <IonSpinner name="crescent" /> : 'Reenviar correo de verificación'}
+                        </IonButton>
+                        <IonButton 
+                            expand="block" 
+                            fill="clear"
+                            onClick={() => setNeedsVerification(false)}
+                            style={{ maxWidth: '300px' }}
+                        >
+                            Volver al login
+                        </IonButton>
+                    </div>
+                    <IonToast
+                        isOpen={showToast}
+                        onDidDismiss={() => setShowToast(false)}
+                        message={toastMessage}
+                        duration={3000}
+                    />
+                </IonContent>
+            </IonPage>
+        );
     }
 
     return (

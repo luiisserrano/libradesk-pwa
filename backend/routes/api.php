@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\UserLibraryController;
+use App\Http\Controllers\EmailVerificationController;
 
 // --------------------------
 //  AUTH (PUBLICO)
@@ -18,6 +19,13 @@ Route::get('/debug-cors', function () {
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+
+// --------------------------
+//  EMAIL VERIFICATION (PUBLICO)
+// --------------------------
+Route::post('/email/verify', [EmailVerificationController::class, 'verify']);
+Route::post('/email/resend', [EmailVerificationController::class, 'resend']);
+Route::post('/email/status', [EmailVerificationController::class, 'status']);
 
 // --------------------------
 //  BOOKS (PUBLICO)

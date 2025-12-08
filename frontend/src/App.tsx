@@ -9,6 +9,7 @@ import MyLibrary from './pages/MyLibrary';
 import Reader from './pages/Reader';
 import Profile from './pages/Profile';
 import OfflineLogin from './pages/OfflineLogin';
+import VerifyEmail from './pages/VerifyEmail';
 import MainLayout from './pages/MainLayout';
 import UpdatePrompt from './components/UpdatePrompt';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -69,6 +70,7 @@ const App: React.FC = () => (
             return <Login />;
           }} />
           <Route exact path="/register" component={Register} />
+          <Route exact path="/verify-email" component={VerifyEmail} />
           <Route exact path="/offline-login" component={OfflineLogin} />
           <Route exact path="/" render={() => <Redirect to="/login" />} />
 

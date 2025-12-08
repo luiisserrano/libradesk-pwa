@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Role;
+use App\Http\Controllers\EmailVerificationController;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
@@ -41,23 +42,23 @@ class AuthController extends Controller
                 }
 
                 $user = User::create($userData);
-                $token = $user->createToken('auth_token')->plainTextToken;
 
-                return ['user' => $user, 'token' => $token];
+                return ['user' => $user];
             });
 
+            // Enviar email de verificación
+            $emailVerificationController = new EmailVerificationController();
+            $emailVerificationController->sendVerificationEmail($result['user']);
+
             return response()->json([
+                'success' => true,
+                'message' => 'Registro exitoso. Por favor revisa tu correo electrónico para verificar tu cuenta.',
                 'user' => [
                     'id' => $result['user']->id,
                     'username' => $result['user']->username,
                     'email' => $result['user']->email,
-                    'role_id' => $result['user']->role_id,
-                    'name' => $result['user']->name,
-                    'profile_picture_url' => $result['user']->profile_picture
-                        ? asset('storage/' . $result['user']->profile_picture)
-                        : null
                 ],
-                'token' => $result['token'],
+                'requires_verification' => true,
             ], 201);
 
         } catch (ValidationException $e) {
@@ -85,6 +86,30 @@ class AuthController extends Controller
                 'password' => 'required|string',
             ]);
 
+            // Primero verificar si el usuario existe
+            $user = User::where('email', $request->email)->first();
+            
+            if (!$user) {
+                return response()->json([
+                    'message' => 'Credenciales inválidas',
+                    'errors' => [
+                        'email' => ['El email o la contraseña son incorrectos']
+                    ]
+                ], 422);
+            }
+
+            // Verificar si el email está verificado
+            if (!$user->email_verified_at) {
+                return response()->json([
+                    'message' => 'Debes verificar tu correo electrónico antes de iniciar sesión',
+                    'errors' => [
+                        'email' => ['Tu correo no ha sido verificado. Revisa tu bandeja de entrada.']
+                    ],
+                    'requires_verification' => true,
+                    'email' => $user->email,
+                ], 403);
+            }
+
             if (!Auth::attempt($request->only('email', 'password'))) {
                 return response()->json([
                     'message' => 'Credenciales inválidas',
@@ -94,7 +119,6 @@ class AuthController extends Controller
                 ], 422);
             }
 
-            $user = User::where('email', $request->email)->firstOrFail();
             $token = $user->createToken('auth_token')->plainTextToken;
 
             return response()->json([

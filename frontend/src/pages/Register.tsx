@@ -20,6 +20,7 @@ const Register: React.FC = () => {
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState('');
     const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+    const [registrationSuccess, setRegistrationSuccess] = useState(false);
     const history = useHistory();
 
     const handleRegister = async () => {
@@ -36,9 +37,16 @@ const Register: React.FC = () => {
             }
 
             const data = await register(formData);
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('user', JSON.stringify(data.user));
-            window.location.href = '/my-library';
+            
+            // Mostrar pantalla de verificación de correo
+            if (data.requires_verification) {
+                setRegistrationSuccess(true);
+            } else {
+                // Fallback por si el backend no requiere verificación
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+                window.location.href = '/my-library';
+            }
         } catch (error: any) {
             let message = 'Error en el registro';
 
@@ -113,6 +121,45 @@ const Register: React.FC = () => {
             setFile(resized);
         }
     };
+
+    // Pantalla de verificación exitosa
+    if (registrationSuccess) {
+        return (
+            <IonPage>
+                <IonContent className="ion-padding">
+                    <div style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        minHeight: '80vh',
+                        textAlign: 'center',
+                        padding: '20px'
+                    }}>
+                        <div style={{
+                            fontSize: '80px',
+                            marginBottom: '20px'
+                        }}>
+                            📧
+                        </div>
+                        <h1 style={{ color: 'var(--ion-color-primary)', marginBottom: '10px' }}>
+                            ¡Revisa tu correo!
+                        </h1>
+                        <p style={{ color: 'var(--ion-text-color)', marginBottom: '30px', maxWidth: '400px' }}>
+                            Hemos enviado un enlace de verificación a <strong>{email}</strong>. 
+                            Por favor revisa tu bandeja de entrada y haz clic en el enlace para activar tu cuenta.
+                        </p>
+                        <p style={{ color: 'var(--ion-color-medium)', fontSize: '0.9rem', marginBottom: '30px' }}>
+                            ¿No recibiste el correo? Revisa tu carpeta de spam.
+                        </p>
+                        <IonButton expand="block" routerLink="/login">
+                            Ir al Login
+                        </IonButton>
+                    </div>
+                </IonContent>
+            </IonPage>
+        );
+    }
 
     return (
         <IonPage>

@@ -1,0 +1,58 @@
+.verify-email-content {
+    --background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+}
+
+.verify-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.verify-box {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    padding: 40px;
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.verify-spinner {
+    width: 60px;
+    height: 60px;
+    margin-bottom: 20px;
+    color: var(--ion-color-primary);
+}
+
+.verify-icon {
+    font-size: 80px;
+    margin-bottom: 20px;
+}
+
+.verify-icon.success {
+    color: var(--ion-color-success);
+}
+
+.verify-icon.error {
+    color: var(--ion-color-danger);
+}
+
+.verify-box h2 {
+    color: white;
+    margin-bottom: 10px;
+    font-size: 1.5rem;
+}
+
+.verify-box p {
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 30px;
+    line-height: 1.6;
+}
+
+.verify-box ion-button {
+    margin-top: 20px;
+}
