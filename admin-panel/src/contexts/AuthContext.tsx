@@ -16,6 +16,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (username: string, email: string, password: string, password_confirmation: string) => Promise<void>;
   logout: () => void;
+  setSession: (token: string, user: User) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -66,10 +67,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
+  const setSession = (newToken: string, newUser: User) => {
+    localStorage.setItem('admin_token', newToken);
+    localStorage.setItem('admin_user', JSON.stringify(newUser));
+    setToken(newToken);
+    setUser(newUser);
+  };
+
   const isAdmin = user?.role_id === 1;
 
   return (
-    <AuthContext.Provider value={{ user, token, isAdmin, isLoading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, token, isAdmin, isLoading, login, register, logout, setSession }}>
       {children}
     </AuthContext.Provider>
   );

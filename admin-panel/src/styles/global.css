@@ -339,3 +339,23 @@ input, select, textarea {
   padding: 3rem;
   color: var(--text-secondary);
 }
+
+/* Input Validation Errors */
+.input-error {
+  border-color: var(--danger) !important;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+}
+
+.error-text {
+  display: block;
+  color: #f87171;
+  font-size: 0.8rem;
+  margin-top: 0.4rem;
+}
+
+.success-text {
+  display: block;
+  color: var(--success);
+  font-size: 0.8rem;
+  margin-top: 0.4rem;
+}

@@ -13,6 +13,11 @@ interface Genre {
   name: string;
 }
 
+interface FieldErrors {
+  title?: string;
+  pdf?: string;
+}
+
 export default function UploadBook() {
   const navigate = useNavigate();
   const [title, setTitle] = useState('');
@@ -24,6 +29,8 @@ export default function UploadBook() {
   const [genres, setGenres] = useState<Genre[]>([]);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [touched, setTouched] = useState<{ title: boolean; pdf: boolean }>({ title: false, pdf: false });
 
   useEffect(() => {
     loadMetadata();
@@ -42,11 +49,61 @@ export default function UploadBook() {
     }
   };
 
+  // Validaciones
+  const validateTitle = (value: string): string | null => {
+    if (!value.trim()) return 'El título es obligatorio';
+    if (value.trim().length < 2) return 'El título debe tener al menos 2 caracteres';
+    if (value.trim().length > 255) return 'El título no puede exceder 255 caracteres';
+    return null;
+  };
+
+  const validatePdf = (file: File | null): string | null => {
+    if (!file) return 'El archivo PDF es obligatorio';
+    if (file.type !== 'application/pdf') return 'El archivo debe ser un PDF';
+    if (file.size > 50 * 1024 * 1024) return 'El archivo no puede exceder 50MB';
+    return null;
+  };
+
+  const validateForm = (): boolean => {
+    const errors: FieldErrors = {};
+    
+    const titleError = validateTitle(title);
+    if (titleError) errors.title = titleError;
+
+    const pdfError = validatePdf(pdf);
+    if (pdfError) errors.pdf = pdfError;
+
+    setFieldErrors(errors);
+    setTouched({ title: true, pdf: true });
+    return Object.keys(errors).length === 0;
+  };
+
+  // Handlers para validación en tiempo real
+  const handleTitleChange = (value: string) => {
+    setTitle(value);
+    if (touched.title) {
+      const error = validateTitle(value);
+      setFieldErrors(prev => ({ ...prev, title: error || undefined }));
+    }
+  };
+
+  const handleTitleBlur = () => {
+    setTouched(prev => ({ ...prev, title: true }));
+    const error = validateTitle(title);
+    setFieldErrors(prev => ({ ...prev, title: error || undefined }));
+  };
+
+  const handlePdfChange = (file: File | null) => {
+    setPdf(file);
+    setTouched(prev => ({ ...prev, pdf: true }));
+    const error = validatePdf(file);
+    setFieldErrors(prev => ({ ...prev, pdf: error || undefined }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!title.trim() || !pdf) {
-      setToast({ message: 'El título y el archivo PDF son obligatorios', type: 'error' });
+    if (!validateForm()) {
       return;
     }
 
@@ -58,7 +115,7 @@ export default function UploadBook() {
       if (authorId) formData.append('author_id', authorId);
       if (genreId) formData.append('genre_id', genreId);
       if (cover) formData.append('cover_image', cover);
-      formData.append('pdf_file', pdf);
+      if (pdf) formData.append('pdf_file', pdf);
 
       await adminService.uploadBook(formData);
       setToast({ message: 'Libro subido exitosamente', type: 'success' });
@@ -84,12 +141,15 @@ export default function UploadBook() {
             <label className="form-label">Título *</label>
             <input
               type="text"
-              className="form-input"
+              className={`form-input ${touched.title && fieldErrors.title ? 'input-error' : ''}`}
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => handleTitleChange(e.target.value)}
+              onBlur={handleTitleBlur}
               placeholder="Título del libro"
-              required
             />
+            {touched.title && fieldErrors.title && (
+              <span className="error-text">{fieldErrors.title}</span>
+            )}
           </div>
 
           <div className="form-group">
@@ -144,13 +204,15 @@ export default function UploadBook() {
             <label className="form-label">Archivo PDF *</label>
             <input
               type="file"
-              className="form-input"
+              className={`form-input ${touched.pdf && fieldErrors.pdf ? 'input-error' : ''}`}
               accept="application/pdf"
-              onChange={(e) => setPdf(e.target.files?.[0] || null)}
-              required
+              onChange={(e) => handlePdfChange(e.target.files?.[0] || null)}
               style={{ padding: '0.5rem' }}
             />
-            {pdf && (
+            {touched.pdf && fieldErrors.pdf && (
+              <span className="error-text">{fieldErrors.pdf}</span>
+            )}
+            {pdf && !fieldErrors.pdf && (
               <p style={{ marginTop: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
                 📄 {pdf.name}
               </p>

@@ -49,6 +49,7 @@ class TwoFactorController extends Controller
                     'username' => $user->username,
                     'email' => $user->email,
                     'role' => $user->role ? $user->role->name : 'user',
+                    'role_id' => $user->role_id,
                     'two_factor_enabled' => $user->two_factor_enabled,
                 ]
             ]);
@@ -71,6 +72,7 @@ class TwoFactorController extends Controller
         try {
             Mail::to($user->email)->send(new TwoFactorCodeMail($user, $code));
         } catch (\Exception $e) {
+            \Log::error('Error sending 2FA email: ' . $e->getMessage());
             return response()->json([
                 'message' => 'Error al enviar el código de verificación'
             ], 500);
@@ -132,6 +134,7 @@ class TwoFactorController extends Controller
                 'username' => $user->username,
                 'email' => $user->email,
                 'role' => $user->role ? $user->role->name : 'user',
+                'role_id' => $user->role_id,
                 'two_factor_enabled' => $user->two_factor_enabled,
             ]
         ]);
