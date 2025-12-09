@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import ReCaptcha from '../components/ReCaptcha';
+import ReCAPTCHA from 'react-google-recaptcha';
 import './Auth.css';
 
 interface FieldErrors {
@@ -14,6 +16,8 @@ export default function Login() {
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [loading, setLoading] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const recaptchaRef = useRef<ReCAPTCHA>(null);
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -21,6 +25,13 @@ export default function Login() {
     e.preventDefault();
     setError('');
     setFieldErrors({});
+
+    // Verificar captcha
+    if (!captchaToken) {
+      setError('Por favor completa el captcha');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -33,6 +44,9 @@ export default function Login() {
       } else {
         setError(err.message || 'Error al iniciar sesión. Verifica tus credenciales.');
       }
+      // Reset captcha on error
+      recaptchaRef.current?.reset();
+      setCaptchaToken(null);
     } finally {
       setLoading(false);
     }
@@ -81,7 +95,13 @@ export default function Login() {
             )}
           </div>
 
-          <button type="submit" className="btn btn-primary auth-btn" disabled={loading}>
+          <ReCaptcha 
+            recaptchaRef={recaptchaRef}
+            onVerify={(token) => setCaptchaToken(token)} 
+            onExpire={() => setCaptchaToken(null)}
+          />
+
+          <button type="submit" className="btn btn-primary auth-btn" disabled={loading || !captchaToken}>
             {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
           </button>
 
