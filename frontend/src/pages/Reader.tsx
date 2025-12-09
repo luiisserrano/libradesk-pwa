@@ -9,8 +9,10 @@ import {
     IonButton,
     IonIcon,
     IonSpinner,
-    IonFooter
+    IonFooter,
+    IonBackButton
 } from '@ionic/react';
+import { menuController } from '@ionic/core/components';
 import { useParams, useHistory } from 'react-router-dom';
 import { arrowBack, chevronBack, chevronForward, add, remove } from 'ionicons/icons';
 import { Document, Page, pdfjs } from 'react-pdf';
@@ -114,12 +116,17 @@ const Reader: React.FC = () => {
         });
     };
 
+    const handleGoBack = () => {
+        // Recargar la página para evitar problemas con el menú
+        window.location.href = '/my-library';
+    };
+
     return (
         <IonPage>
             <IonHeader>
                 <IonToolbar>
                     <IonButtons slot="start">
-                        <IonButton onClick={() => history.push('/my-library')}>
+                        <IonButton onClick={handleGoBack}>
                             <IonIcon icon={arrowBack} />
                         </IonButton>
                     </IonButtons>
@@ -145,7 +152,7 @@ const Reader: React.FC = () => {
                 {error && (
                     <div style={{ padding: '20px', textAlign: 'center' }}>
                         <p>{error}</p>
-                        <IonButton routerLink="/my-library">Volver</IonButton>
+                        <IonButton onClick={handleGoBack}>Volver</IonButton>
                     </div>
                 )}
 

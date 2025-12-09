@@ -1,7 +1,8 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { IonMenu, IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonItem, IonIcon, IonLabel, IonToggle, IonAvatar } from '@ionic/react';
+import { menuController } from '@ionic/core/components';
 import { personOutline, libraryOutline, bookOutline, logOutOutline, moonOutline, sunnyOutline } from 'ionicons/icons';
-import { useHistory } from 'react-router-dom';
+import { useHistory, useLocation } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import UserAvatar from './UserAvatar';
 import './Sidebar.css';
@@ -10,6 +11,7 @@ import logo from '../img/logo.png';
 
 const Sidebar: React.FC = () => {
     const history = useHistory();
+    const location = useLocation();
     const { isDark, toggleTheme } = useTheme();
     const menuRef = useRef<HTMLIonMenuElement>(null);
     const [isAnimating, setIsAnimating] = useState(false);
@@ -19,6 +21,14 @@ const Sidebar: React.FC = () => {
     });
 
     const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+    // Rehabilitar menú cada vez que cambia la ruta
+    useEffect(() => {
+        const enableMenu = async () => {
+            await menuController.enable(true);
+        };
+        enableMenu();
+    }, [location.pathname]);
 
     React.useEffect(() => {
         const handleStatusChange = () => {
