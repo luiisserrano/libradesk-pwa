@@ -41,7 +41,9 @@ export default function ServerUpdatePrompt() {
   const handleUpdate = () => {
     if (serverTime) localStorage.setItem(STORAGE_KEY, serverTime);
     // Hard reload to ensure new service worker/files are loaded
-    window.location.reload(true as unknown as boolean);
+    // `location.reload()` signature may not accept a boolean in some TS lib versions
+    // so call without arguments to avoid TS error.
+    window.location.reload();
   };
 
   const handleDismiss = () => {
