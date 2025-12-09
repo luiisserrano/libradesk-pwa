@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
     IonContent,
     IonHeader,
@@ -35,15 +35,75 @@ const Reader: React.FC = () => {
     const [pageNumber, setPageNumber] = useState(1);
     const [scale, setScale] = useState(1.0);
     const [containerWidth, setContainerWidth] = useState<number>(window.innerWidth);
+    const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const initialPageLoaded = useRef(false);
 
     useEffect(() => {
         loadPdf();
+        loadSavedProgress();
 
         const handleResize = () => {
             setContainerWidth(window.innerWidth);
         };
         window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
+        return () => {
+            window.removeEventListener('resize', handleResize);
+            // Guardar progreso al salir
+            if (saveTimeoutRef.current) {
+                clearTimeout(saveTimeoutRef.current);
+            }
+        };
+    }, [id]);
+
+    // Cargar el progreso guardado
+    const loadSavedProgress = async () => {
+        try {
+            // Primero intentar desde localStorage (para offline)
+            const savedPage = localStorage.getItem(`book_${id}_page`);
+            if (savedPage) {
+                const page = parseInt(savedPage, 10);
+                if (page > 0) {
+                    setPageNumber(page);
+                    initialPageLoaded.current = true;
+                }
+            }
+
+            // Si estamos online, obtener desde el servidor
+            if (navigator.onLine) {
+                const response = await api.get('/library');
+                const books = response.data;
+                const currentBook = books.find((b: any) => b.id === parseInt(id));
+                if (currentBook && currentBook.current_page > 0) {
+                    setPageNumber(currentBook.current_page);
+                    localStorage.setItem(`book_${id}_page`, currentBook.current_page.toString());
+                    initialPageLoaded.current = true;
+                }
+            }
+        } catch (error) {
+            console.log('No se pudo cargar el progreso guardado:', error);
+        }
+    };
+
+    // Guardar progreso con debounce
+    const saveProgress = useCallback((page: number) => {
+        // Guardar en localStorage inmediatamente (para offline)
+        localStorage.setItem(`book_${id}_page`, page.toString());
+
+        // Debounce para guardar en servidor
+        if (saveTimeoutRef.current) {
+            clearTimeout(saveTimeoutRef.current);
+        }
+
+        saveTimeoutRef.current = setTimeout(async () => {
+            if (navigator.onLine) {
+                try {
+                    await api.put(`/library/${id}`, { current_page: page });
+                    console.log('Progreso guardado:', page);
+                } catch (error) {
+                    console.error('Error guardando progreso:', error);
+                }
+            }
+        }, 1000); // Esperar 1 segundo después del último cambio
     }, [id]);
 
     const loadPdf = async () => {
@@ -112,11 +172,20 @@ const Reader: React.FC = () => {
     const changePage = (offset: number) => {
         setPageNumber(prevPageNumber => {
             const newPage = prevPageNumber + offset;
-            return Math.min(Math.max(1, newPage), numPages || 1);
+            const validPage = Math.min(Math.max(1, newPage), numPages || 1);
+            // Guardar progreso cuando cambia la página
+            saveProgress(validPage);
+            return validPage;
         });
     };
 
     const handleGoBack = () => {
+        // Guardar progreso antes de salir
+        if (pageNumber > 0 && navigator.onLine) {
+            api.put(`/library/${id}`, { current_page: pageNumber }).catch(console.error);
+        }
+        localStorage.setItem(`book_${id}_page`, pageNumber.toString());
+        
         // Recargar la página para evitar problemas con el menú
         window.location.href = '/my-library';
     };
