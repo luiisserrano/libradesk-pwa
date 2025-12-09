@@ -44,6 +44,9 @@ Route::get('/books/{id}/pdf', [BookController::class, 'getPdf']);
 Route::get('/books/{id}/cover', [BookController::class, 'getCover']);
 Route::get('/books/{id}/download', [BookController::class, 'download']);
 
+// Endpoint para que el frontend consulte la última actualización (timestamp)
+Route::get('/updates/latest', [\App\Http\Controllers\UpdateController::class, 'latest']);
+
 // --------------------------
 //  AUTORES Y GENEROS (PUBLICO)
 // --------------------------

@@ -12,6 +12,7 @@ import OfflineLogin from './pages/OfflineLogin';
 import VerifyEmail from './pages/VerifyEmail';
 import MainLayout from './pages/MainLayout';
 import UpdatePrompt from './components/UpdatePrompt';
+import ServerUpdatePrompt from './components/ServerUpdatePrompt';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { notificationService } from './services/notificationService';
 
@@ -60,6 +61,7 @@ const App: React.FC = () => (
   <IonApp>
     <ThemeProvider>
       <UpdatePrompt />
+      <ServerUpdatePrompt />
       <IonReactRouter>
         <NotificationInitializer />
         <IonRouterOutlet>

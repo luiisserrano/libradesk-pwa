@@ -111,6 +111,13 @@ class BookController extends Controller
                 // Don't fail the request if notification fails
             }
 
+            // Update last change timestamp used by clients to detect updates
+            try {
+                \Illuminate\Support\Facades\Cache::put('app_last_update', now()->toDateTimeString());
+            } catch (\Exception $e) {
+                \Log::error('Failed to update app_last_update cache: ' . $e->getMessage());
+            }
+
             return response()->json([
                 'message' => 'Book created successfully',
                 'book' => $bookData
