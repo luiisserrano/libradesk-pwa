@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import {
     IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonCard,
     IonCardHeader, IonCardTitle, IonCardContent, IonButton, IonButtons,
-    IonMenuButton, IonInput, IonItem, IonLabel, IonToast,
+    IonMenuButton, IonInput, IonItem, IonLabel, IonToast, IonToggle, IonSpinner,
     useIonViewWillEnter
 } from '@ionic/react';
 import { menuController } from '@ionic/core/components';
 import UserAvatar from '../components/UserAvatar';
 import { updateProfile } from '../services/userService';
 import { biometricService } from '../services/biometricService';
+import api from '../services/api';
 
 const Profile: React.FC = () => {
     // Rehabilitar el menú al volver de otras páginas
@@ -28,6 +29,8 @@ const Profile: React.FC = () => {
     const [profilePicture, setProfilePicture] = useState<File | null>(null);
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState('');
+    const [twoFactorEnabled, setTwoFactorEnabled] = useState(user?.two_factor_enabled ?? true);
+    const [toggling2FA, setToggling2FA] = useState(false);
 
     const resizeImage = (file: File): Promise<File> => {
         return new Promise((resolve) => {
@@ -130,6 +133,29 @@ const Profile: React.FC = () => {
         setIsEditing(false);
     };
 
+    const handleToggle2FA = async () => {
+        setToggling2FA(true);
+        try {
+            const response = await api.post('/2fa/toggle');
+            const newValue = response.data.two_factor_enabled;
+            setTwoFactorEnabled(newValue);
+            
+            // Actualizar localStorage
+            const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+            storedUser.two_factor_enabled = newValue;
+            localStorage.setItem('user', JSON.stringify(storedUser));
+            setUser(storedUser);
+            
+            setToastMessage(newValue ? 'Verificación en dos pasos activada' : 'Verificación en dos pasos desactivada');
+            setShowToast(true);
+        } catch (error: any) {
+            setToastMessage('Error al cambiar configuración de 2FA');
+            setShowToast(true);
+        } finally {
+            setToggling2FA(false);
+        }
+    };
+
     return (
         <IonPage>
             <IonHeader>
@@ -161,6 +187,26 @@ const Profile: React.FC = () => {
 
                                 <div className="ion-margin-top ion-padding-top" style={{ borderTop: '1px solid var(--ion-color-light-shade)' }}>
                                     <IonLabel color="medium"><h3>Seguridad y Acceso Offline</h3></IonLabel>
+                                    
+                                    {/* Toggle 2FA */}
+                                    <IonItem lines="none" style={{ marginTop: '10px' }}>
+                                        <IonLabel>
+                                            <h2>Verificación en dos pasos</h2>
+                                            <p style={{ fontSize: '0.85rem' }}>
+                                                Recibe un código por email cada vez que inicies sesión
+                                            </p>
+                                        </IonLabel>
+                                        {toggling2FA ? (
+                                            <IonSpinner slot="end" name="crescent" />
+                                        ) : (
+                                            <IonToggle 
+                                                slot="end" 
+                                                checked={twoFactorEnabled} 
+                                                onIonChange={handleToggle2FA}
+                                            />
+                                        )}
+                                    </IonItem>
+
                                     <IonButton
                                         expand="block"
                                         fill="outline"

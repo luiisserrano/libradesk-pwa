@@ -13,6 +13,8 @@ import logo from '../img/logo.png';
 interface FieldErrors {
     email?: string[];
     password?: string[];
+    code?: string[];
+    captcha?: string[];
 }
 
 const Login: React.FC = () => {
@@ -25,8 +27,13 @@ const Login: React.FC = () => {
     const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
     const [isMobile, setIsMobile] = useState(false);
     const [needsVerification, setNeedsVerification] = useState(false);
+    const [needs2FA, setNeeds2FA] = useState(false);
+    const [twoFactorCode, setTwoFactorCode] = useState('');
+    const [emailHint, setEmailHint] = useState('');
     const [resendingEmail, setResendingEmail] = useState(false);
+    const [loading, setLoading] = useState(false);
     const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+    const [touched, setTouched] = useState({ email: false, password: false, submitted: false });
     const recaptchaRef = useRef<ReCAPTCHA>(null);
     const history = useHistory();
 
@@ -59,23 +66,77 @@ const Login: React.FC = () => {
         };
     }, []);
 
+    // Validaciones
+    const validateEmail = (email: string): string | null => {
+        if (!email.trim()) return 'El email es requerido';
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) return 'Ingresa un email válido';
+        return null;
+    };
+
+    const validatePassword = (password: string): string | null => {
+        if (!password) return 'La contraseña es requerida';
+        if (password.length < 6) return 'La contraseña debe tener al menos 6 caracteres';
+        return null;
+    };
+
+    const validateForm = (): boolean => {
+        const errors: FieldErrors = {};
+        
+        const emailError = validateEmail(email);
+        if (emailError) errors.email = [emailError];
+
+        const passwordError = validatePassword(password);
+        if (passwordError) errors.password = [passwordError];
+
+        if (navigator.onLine && !captchaToken) {
+            errors.captcha = ['Debes completar el captcha'];
+        }
+
+        setFieldErrors(errors);
+        setTouched({ email: true, password: true, submitted: true });
+        return Object.keys(errors).length === 0;
+    };
+
+    const handleBlur = (field: 'email' | 'password') => {
+        // Solo validar en blur si ya se intentó enviar el formulario
+        if (!touched.submitted) return;
+        
+        setTouched(prev => ({ ...prev, [field]: true }));
+        if (field === 'email') {
+            const error = validateEmail(email);
+            setFieldErrors(prev => ({ ...prev, email: error ? [error] : undefined }));
+        } else if (field === 'password') {
+            const error = validatePassword(password);
+            setFieldErrors(prev => ({ ...prev, password: error ? [error] : undefined }));
+        }
+    };
+
     const handleLogin = async () => {
         // Limpiar errores anteriores
         setFieldErrors({});
         setNeedsVerification(false);
 
-        // Verificar captcha si está online
-        if (navigator.onLine && !captchaToken) {
-            setToastMessage('Por favor completa el captcha');
-            setShowToast(true);
-            return;
-        }
+        // Validar formulario
+        if (!validateForm()) return;
+
+        setLoading(true);
 
         try {
-            const data = await login({ email, password });
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('user', JSON.stringify(data.user));
-            window.location.href = '/my-library';
+            // Primero intentar login para ver si necesita 2FA
+            const response = await api.post('/2fa/send', { email, password });
+            
+            if (response.data.requires_2fa) {
+                setNeeds2FA(true);
+                setEmailHint(response.data.email_hint || email);
+                setToastMessage('Código de verificación enviado a tu correo');
+                setShowToast(true);
+            } else {
+                // Si no requiere 2FA, el backend ya devuelve el token
+                localStorage.setItem('token', response.data.token);
+                localStorage.setItem('user', JSON.stringify(response.data.user));
+                window.location.href = '/my-library';
+            }
         } catch (error: any) {
             let message = 'Error al iniciar sesión';
 
@@ -104,6 +165,45 @@ const Login: React.FC = () => {
             // Reset captcha on error
             recaptchaRef.current?.reset();
             setCaptchaToken(null);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleVerify2FA = async () => {
+        if (!twoFactorCode || twoFactorCode.length !== 6) {
+            setFieldErrors({ code: ['Ingresa el código de 6 dígitos'] });
+            return;
+        }
+
+        setLoading(true);
+        setFieldErrors({});
+
+        try {
+            const response = await api.post('/2fa/verify', { email, code: twoFactorCode });
+            localStorage.setItem('token', response.data.token);
+            localStorage.setItem('user', JSON.stringify(response.data.user));
+            window.location.href = '/my-library';
+        } catch (error: any) {
+            const message = error.response?.data?.message || 'Código inválido o expirado';
+            setFieldErrors({ code: [message] });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleResend2FA = async () => {
+        setResendingEmail(true);
+        try {
+            await api.post('/2fa/send', { email, password });
+            setToastMessage('Nuevo código enviado a tu correo');
+            setShowToast(true);
+            setTwoFactorCode('');
+        } catch (error: any) {
+            setToastMessage(error.response?.data?.message || 'Error al reenviar código');
+            setShowToast(true);
+        } finally {
+            setResendingEmail(false);
         }
     };
 
@@ -160,6 +260,87 @@ const Login: React.FC = () => {
 
     if (showInstallPrompt) {
         return <InstallPrompt />;
+    }
+
+    // Pantalla de verificación 2FA
+    if (needs2FA) {
+        return (
+            <IonPage>
+                <IonHeader>
+                    <IonToolbar>
+                        <IonTitle>Verificación de Seguridad</IonTitle>
+                    </IonToolbar>
+                </IonHeader>
+                <IonContent className="ion-padding">
+                    <div style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        minHeight: '70vh',
+                        textAlign: 'center',
+                        padding: '20px'
+                    }}>
+                        <div style={{ fontSize: '80px', marginBottom: '20px' }}>🔐</div>
+                        <h2 style={{ color: 'var(--ion-color-primary)', marginBottom: '10px' }}>
+                            Ingresa el código
+                        </h2>
+                        <p style={{ marginBottom: '20px', maxWidth: '350px' }}>
+                            Enviamos un código de 6 dígitos a <strong>{emailHint}</strong>
+                        </p>
+                        
+                        <IonItem style={{ width: '100%', maxWidth: '200px', marginBottom: '10px' }}>
+                            <IonInput
+                                type="tel"
+                                value={twoFactorCode}
+                                onIonChange={e => setTwoFactorCode(e.detail.value?.replace(/\D/g, '').slice(0, 6) || '')}
+                                placeholder="000000"
+                                style={{ textAlign: 'center', fontSize: '24px', letterSpacing: '8px' }}
+                                maxlength={6}
+                            />
+                        </IonItem>
+                        {fieldErrors.code && (
+                            <IonText color="danger" style={{ fontSize: '0.85rem', marginBottom: '15px' }}>
+                                {fieldErrors.code[0]}
+                            </IonText>
+                        )}
+
+                        <IonButton 
+                            expand="block" 
+                            onClick={handleVerify2FA}
+                            disabled={loading || twoFactorCode.length !== 6}
+                            style={{ marginBottom: '15px', maxWidth: '300px' }}
+                        >
+                            {loading ? <IonSpinner name="crescent" /> : 'Verificar'}
+                        </IonButton>
+                        
+                        <IonButton 
+                            expand="block" 
+                            fill="outline"
+                            onClick={handleResend2FA}
+                            disabled={resendingEmail}
+                            style={{ marginBottom: '15px', maxWidth: '300px' }}
+                        >
+                            {resendingEmail ? <IonSpinner name="crescent" /> : 'Reenviar código'}
+                        </IonButton>
+                        
+                        <IonButton 
+                            expand="block" 
+                            fill="clear"
+                            onClick={() => {
+                                setNeeds2FA(false);
+                                setTwoFactorCode('');
+                                setFieldErrors({});
+                            }}
+                            style={{ maxWidth: '300px' }}
+                        >
+                            Volver al login
+                        </IonButton>
+                    </div>
+                    <IonToast isOpen={showToast} onDidDismiss={() => setShowToast(false)} message={toastMessage} duration={3000} />
+                </IonContent>
+            </IonPage>
+        );
     }
 
     // Mostrar mensaje de verificación pendiente
@@ -232,38 +413,43 @@ const Login: React.FC = () => {
                 </div>
                 {isOnline ? (
                     <>
-                        <IonItem className={fieldErrors.email ? 'ion-invalid' : ''}>
+                        <IonItem className={touched.submitted && fieldErrors.email ? 'ion-invalid' : ''}>
                             <IonLabel position="floating">Email</IonLabel>
                             <IonInput
+                                type="email"
                                 value={email}
                                 onIonChange={e => {
                                     setEmail(e.detail.value!);
-                                    if (fieldErrors.email) {
-                                        setFieldErrors(prev => ({ ...prev, email: undefined }));
+                                    if (touched.submitted) {
+                                        const error = validateEmail(e.detail.value!);
+                                        setFieldErrors(prev => ({ ...prev, email: error ? [error] : undefined }));
                                     }
                                 }}
+                                onIonBlur={() => handleBlur('email')}
                             />
                         </IonItem>
-                        {fieldErrors.email && (
+                        {touched.submitted && fieldErrors.email && (
                             <IonText color="danger" style={{ fontSize: '0.85rem', padding: '4px 16px', display: 'block' }}>
                                 {fieldErrors.email[0]}
                             </IonText>
                         )}
 
-                        <IonItem className={fieldErrors.password ? 'ion-invalid' : ''}>
-                            <IonLabel position="floating">Password</IonLabel>
+                        <IonItem className={touched.submitted && fieldErrors.password ? 'ion-invalid' : ''}>
+                            <IonLabel position="floating">Contraseña</IonLabel>
                             <IonInput
                                 type="password"
                                 value={password}
                                 onIonChange={e => {
                                     setPassword(e.detail.value!);
-                                    if (fieldErrors.password) {
-                                        setFieldErrors(prev => ({ ...prev, password: undefined }));
+                                    if (touched.submitted) {
+                                        const error = validatePassword(e.detail.value!);
+                                        setFieldErrors(prev => ({ ...prev, password: error ? [error] : undefined }));
                                     }
                                 }}
+                                onIonBlur={() => handleBlur('password')}
                             />
                         </IonItem>
-                        {fieldErrors.password && (
+                        {touched.submitted && fieldErrors.password && (
                             <IonText color="danger" style={{ fontSize: '0.85rem', padding: '4px 16px', display: 'block' }}>
                                 {fieldErrors.password[0]}
                             </IonText>
@@ -271,15 +457,23 @@ const Login: React.FC = () => {
 
                         <ReCaptcha 
                             recaptchaRef={recaptchaRef}
-                            onVerify={(token) => setCaptchaToken(token)} 
+                            onVerify={(token) => {
+                                setCaptchaToken(token);
+                                if (token) setFieldErrors(prev => ({ ...prev, captcha: undefined }));
+                            }} 
                             onExpire={() => setCaptchaToken(null)}
                         />
+                        {fieldErrors.captcha && (
+                            <IonText color="danger" style={{ fontSize: '0.85rem', padding: '4px 16px', display: 'block', textAlign: 'center' }}>
+                                {fieldErrors.captcha[0]}
+                            </IonText>
+                        )}
 
-                        <IonButton expand="block" onClick={handleLogin} className="ion-margin-top" disabled={!captchaToken}>
-                            Login
+                        <IonButton expand="block" onClick={handleLogin} className="ion-margin-top" disabled={loading}>
+                            {loading ? <IonSpinner name="crescent" /> : 'Iniciar Sesión'}
                         </IonButton>
                         <IonButton expand="block" fill="clear" routerLink="/register">
-                            Create Account
+                            Crear Cuenta
                         </IonButton>
                     </>
 
@@ -294,7 +488,7 @@ const Login: React.FC = () => {
 
                 {isMobile && (
                     <IonButton expand="block" color="secondary" onClick={handleBiometricLogin} className="ion-margin-top">
-                        Login with Fingerprint
+                        Login con Huella/FaceID
                     </IonButton>
                 )}
                 <IonToast
