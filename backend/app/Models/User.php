@@ -26,6 +26,7 @@ class User extends Authenticatable
         'password',
         'role_id',
         'profile_picture',
+        'two_factor_enabled',
     ];
 
     public function role()
@@ -61,6 +62,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'two_factor_enabled' => 'boolean',
         ];
     }
 }

@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\UserLibraryController;
 use App\Http\Controllers\EmailVerificationController;
+use App\Http\Controllers\TwoFactorController;
 
 // --------------------------
 //  AUTH (PUBLICO)
@@ -19,6 +20,13 @@ Route::get('/debug-cors', function () {
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+
+// --------------------------
+//  TWO FACTOR AUTH (PUBLICO)
+// --------------------------
+Route::post('/2fa/send', [TwoFactorController::class, 'sendCode']);
+Route::post('/2fa/verify', [TwoFactorController::class, 'verifyCode']);
+Route::post('/2fa/resend', [TwoFactorController::class, 'resendCode']);
 
 // --------------------------
 //  EMAIL VERIFICATION (PUBLICO)
@@ -62,6 +70,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Actualizar perfil
     Route::put('/user/profile', [AuthController::class, 'updateProfile']);
+
+    // Toggle 2FA
+    Route::post('/2fa/toggle', [TwoFactorController::class, 'toggle']);
 
     // Foto de usuario
     Route::get('/users/{id}/photo', [AuthController::class, 'getProfilePhoto']);

@@ -20,10 +20,23 @@ class AuthController extends Controller
     {
         try {
             $validated = $request->validate([
-                'username' => 'required|string|unique:users,username',
+                'username' => 'required|string|min:3|max:50|unique:users,username',
                 'email' => 'required|string|email|unique:users,email',
-                'password' => 'required|string|min:6',
+                'password' => [
+                    'required',
+                    'string',
+                    'min:8',
+                    'regex:/[a-z]/',      // al menos una minúscula
+                    'regex:/[A-Z]/',      // al menos una mayúscula
+                    'regex:/[0-9]/',      // al menos un número
+                    'regex:/[!@#$%^&*(),.?":{}|<>]/', // al menos un carácter especial
+                ],
                 'profile_picture' => 'nullable|image|max:2048',
+            ], [
+                'password.min' => 'La contraseña debe tener al menos 8 caracteres',
+                'password.regex' => 'La contraseña debe incluir mayúsculas, minúsculas, números y caracteres especiales',
+                'username.min' => 'El nombre de usuario debe tener al menos 3 caracteres',
+                'username.max' => 'El nombre de usuario no puede tener más de 50 caracteres',
             ]);
 
             $result = DB::transaction(function () use ($request) {
