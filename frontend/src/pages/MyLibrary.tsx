@@ -22,6 +22,7 @@ import {
     IonToast,
     IonSpinner
 } from '@ionic/react';
+import { menuController } from '@ionic/core/components';
 import { trash, cloudDownload, checkmarkCircle } from 'ionicons/icons';
 import { getUserLibrary, removeBookFromLibrary } from '../services/bookService';
 import { offlineBookService } from '../services/offlineBookService';
@@ -38,6 +39,8 @@ const MyLibrary: React.FC = () => {
     const history = useHistory();
 
     useIonViewWillEnter(() => {
+        // Rehabilitar el menú al volver de otras páginas
+        menuController.enable(true);
         fetchLibrary();
     });
 

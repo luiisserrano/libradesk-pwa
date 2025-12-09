@@ -20,6 +20,7 @@ import {
   useIonViewWillEnter,
   IonSpinner
 } from '@ionic/react';
+import { menuController } from '@ionic/core/components';
 import { useHistory } from 'react-router-dom';
 import { getBooks, addBookToLibrary } from '../services/bookService';
 import BookCover from '../components/BookCover';
@@ -33,6 +34,8 @@ const Home: React.FC = () => {
   const [addingBookId, setAddingBookId] = useState<number | null>(null);
 
   useIonViewWillEnter(() => {
+    // Rehabilitar el menú al volver de otras páginas
+    menuController.enable(true);
     fetchBooks();
   });
 

@@ -2,13 +2,20 @@ import React, { useState } from 'react';
 import {
     IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonCard,
     IonCardHeader, IonCardTitle, IonCardContent, IonButton, IonButtons,
-    IonMenuButton, IonInput, IonItem, IonLabel, IonToast
+    IonMenuButton, IonInput, IonItem, IonLabel, IonToast,
+    useIonViewWillEnter
 } from '@ionic/react';
+import { menuController } from '@ionic/core/components';
 import UserAvatar from '../components/UserAvatar';
 import { updateProfile } from '../services/userService';
 import { biometricService } from '../services/biometricService';
 
 const Profile: React.FC = () => {
+    // Rehabilitar el menú al volver de otras páginas
+    useIonViewWillEnter(() => {
+        menuController.enable(true);
+    });
+
     const [user, setUser] = useState(() => {
         const saved = localStorage.getItem('user');
         return saved ? JSON.parse(saved) : null;
