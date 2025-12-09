@@ -10,6 +10,19 @@ export default function ServerUpdatePrompt() {
   const [serverTime, setServerTime] = useState<string | null>(null);
 
   useEffect(() => {
+    // Only show this prompt for installed mobile PWAs
+    const isMobile = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const isStandalone = typeof window !== 'undefined' && (
+      (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+      // iOS
+      (window.navigator && (window.navigator as any).standalone === true)
+    );
+
+    if (!isMobile || !isStandalone) {
+      // Do nothing on regular web or desktop — only target installed mobile PWA
+      return;
+    }
+
     let mounted = true;
 
     async function check() {
