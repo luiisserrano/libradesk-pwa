@@ -235,6 +235,9 @@ class BookController extends Controller
         $book = Book::findOrFail($id);
 
         try {
+            // Eliminar registros relacionados en user_books primero
+            $book->users()->detach();
+
             if ($book->cover_image) {
                 Storage::disk('public')->delete($book->cover_image);
             }
