@@ -116,6 +116,12 @@ const Sidebar: React.FC = () => {
 
                 {/* Navigation Menu */}
                 <IonList>
+                    <IonItem>
+                        <IonIcon icon={isDark ? moonOutline : sunnyOutline} slot="start" />
+                        <IonLabel>Modo {isDark ? 'Oscuro' : 'Claro'}</IonLabel>
+                        <IonToggle checked={isDark} onIonChange={toggleTheme} slot="end" />
+                    </IonItem>
+                    
                     <IonItem button onClick={() => handleNavigation('/profile')} disabled={isAnimating}>
                         <IonIcon icon={personOutline} slot="start" />
                         <IonLabel>Mi Perfil</IonLabel>
@@ -131,11 +137,6 @@ const Sidebar: React.FC = () => {
                         <IonLabel>Explorar Libros</IonLabel>
                     </IonItem>
 
-                    <IonItem>
-                        <IonIcon icon={isDark ? moonOutline : sunnyOutline} slot="start" />
-                        <IonLabel>Modo {isDark ? 'Oscuro' : 'Claro'}</IonLabel>
-                        <IonToggle checked={isDark} onIonChange={toggleTheme} slot="end" />
-                    </IonItem>
 
                     <IonItem button onClick={handleLogout} className="logout-item">
                         <IonIcon icon={logOutOutline} slot="start" color="danger" />
